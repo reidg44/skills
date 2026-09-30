@@ -21,7 +21,7 @@ plugin.json                        # Agent Plugins manifest: Codex + Copilot (ha
 claude plugin marketplace add reidg44/skills
 claude plugin install reidg44-skills@reidg44
 ```
-Skills show up namespaced, e.g. `/reidg44-skills:hello`.
+Skills show up namespaced, e.g. `/reidg44-skills:plain-language`.
 
 **GitHub Copilot CLI**
 ```sh

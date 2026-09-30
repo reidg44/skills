@@ -23,5 +23,5 @@ bump:
     @jq -r '"version -> " + .version' plugin.json
 
 # Try the plugin in Claude Code straight from this checkout (no install)
-try prompt="hello skills":
+try prompt:
     command claude --plugin-dir . -p "{{prompt}}"
