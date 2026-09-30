@@ -1,0 +1,78 @@
+# Standard pyproject.toml scaffold (application-style — no [build-system]).
+# Replace name/description/dependencies for the specific project; the tooling
+# config below (pytest + ruff) is the reusable boilerplate — keep it verbatim.
+# NOTE: no httpx — prefer requests/aiohttp/stdlib (see SKILL.md).
+
+[project]
+dependencies    = [
+    # project deps go here, e.g. "requests>=2.34.2"
+]
+description     = "TODO: one-line description of this project"
+name            = "TODO-project-name"
+readme          = "README.md"
+requires-python = ">=3.13"
+version         = "0.1.0"
+
+[dependency-groups]
+dev = ["ruff>=0.15.21"]
+
+[tool.pytest.ini_options]
+addopts    = "-ra -q"  # -ra: show summary for all tests, -q: quiet mode
+minversion = "6.0"
+testpaths  = ["tests"]
+
+[tool.ruff]
+exclude = [
+    ".bzr",
+    ".direnv",
+    ".eggs",
+    ".git",
+    ".git-rewrite",
+    ".hg",
+    ".ipynb_checkpoints",
+    ".mypy_cache",
+    ".nox",
+    ".pants.d",
+    ".pyenv",
+    ".pytest_cache",
+    ".pytype",
+    ".ruff_cache",
+    ".svn",
+    ".tox",
+    ".venv",
+    ".vscode",
+    "__pypackages__",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+    "node_modules",
+    "site-packages",
+    "venv",
+]
+
+include        = ["*.ipynb", "*.py", "*.pyi"] # ensure to run on all python files
+indent-width   = 4                            # black default
+line-length    = 88                           # black default
+target-version = "py313"
+
+[tool.ruff.format]
+docstring-code-format      = true
+docstring-code-line-length = "dynamic"
+indent-style               = "space"
+line-ending                = "auto"
+quote-style                = "double"
+skip-magic-trailing-comma  = false
+
+[tool.ruff.lint]
+dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
+fixable = ["ALL"]
+ignore = []
+select = ["ALL"]
+unfixable = [
+    "F401", # unused-import
+    "F841", # unused-variable
+]
+
+[tool.ruff.lint.pydocstyle]
+convention = "google" # resolves conflicting D-rules enabled by select = ["ALL"]
