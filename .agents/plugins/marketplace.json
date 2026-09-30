@@ -1,0 +1,12 @@
+{
+  "name": "reidg44",
+  "interface": { "displayName": "reidg44 Skills" },
+  "plugins": [
+    {
+      "name": "reidg44-skills",
+      "source": { "source": "local", "path": "./" },
+      "policy": { "installation": "AVAILABLE", "authentication": "ON_INSTALL" },
+      "category": "Productivity"
+    }
+  ]
+}

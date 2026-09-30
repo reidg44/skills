@@ -1,0 +1,12 @@
+{
+  "name": "reidg44",
+  "owner": { "name": "reidg44", "url": "https://github.com/reidg44" },
+  "description": "reidg44's agent skills marketplace",
+  "plugins": [
+    {
+      "name": "reidg44-skills",
+      "source": "./",
+      "description": "Personal agent skills."
+    }
+  ]
+}

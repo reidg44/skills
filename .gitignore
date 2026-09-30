@@ -1,0 +1,15 @@
+# Secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+*.p12
+*.crt
+
+# OS / editor
+.DS_Store
+*.tmp
+
+# Personal PII denylist for scripts/check-pii.sh (must never be committed)
+.pii-denylist

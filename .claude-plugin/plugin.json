@@ -1,0 +1,7 @@
+{
+  "name": "reidg44-skills",
+  "description": "Personal agent skills, shared across Claude Code, Codex, and Copilot CLI.",
+  "author": { "name": "reidg44", "url": "https://github.com/reidg44" },
+  "repository": "https://github.com/reidg44/skills",
+  "license": "MIT"
+}
