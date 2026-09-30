@@ -35,6 +35,24 @@ codex plugin marketplace add reidg44/skills
 ```
 Then in a Codex session run `/plugins`, toggle **reidg44-skills** on, and start a new session.
 
+## Install with `npx skills` (any agent)
+
+The [`skills` CLI](https://github.com/vercel-labs/skills) installs individual skills into
+Claude Code, Codex, Copilot, Cursor, OpenCode, and many other agents. It copies skills into
+the agent's skills folder instead of installing the plugin, so skills get plain names
+(`plain-language`, not `/reidg44-skills:plain-language`) and don't update on their own.
+
+```sh
+npx skills add reidg44/skills --list                                # see what's available
+npx skills add reidg44/skills --skill plain-language -a claude-code # one skill, this project
+npx skills add reidg44/skills --skill '*' -a claude-code -g         # all skills, user-wide
+npx skills update                                                   # pull the latest versions
+```
+
+Project installs go in the agent's folder in the current project (for example
+`.claude/skills/`) and are recorded in `skills-lock.json`. Add `-g` to install for your user
+instead. Use `-a '*'` to install into every agent the tool supports.
+
 ## How updates flow
 
 | Tool | Detects updates by | What you do |
@@ -42,6 +60,7 @@ Then in a Codex session run `/plugins`, toggle **reidg44-skills** on, and start 
 | Claude Code | git commit SHA | Nothing. It auto-updates at startup (or run `claude plugin marketplace update reidg44`). |
 | Codex | git commit SHA (`git ls-remote` at startup) | Nothing. Or run `codex plugin marketplace upgrade`. |
 | Copilot CLI | not documented, so assume `version` | Run `just bump` before pushing, then `copilot plugin update --all`. |
+| `npx skills` | only when you run update | Run `npx skills update` (add `-g` for user-wide installs). |
 
 To have Copilot auto-update too, set `autoUpdate: true` on this marketplace's entry
 under `extraKnownMarketplaces` in Copilot's settings.
