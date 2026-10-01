@@ -17,6 +17,8 @@ generic='/Users/[A-Za-z0-9._-]+|/home/[A-Za-z0-9._-]+|[Cc]:\\+Users\\+[A-Za-z0-9
 generic+='|(^|[^0-9.])(10\.[0-9]{1,3}|192\.168|172\.(1[6-9]|2[0-9]|3[01]))\.[0-9]{1,3}\.[0-9]{1,3}'
 generic+='|[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}'
 allow='users\.noreply\.github\.com|noreply@anthropic\.com|@example\.(com|org)|pii-allow'
+# Commit author/committer must be GitHub noreply; the content allowlist above is too loose for that.
+author_allow='^[A-Za-z0-9._+-]+@users\.noreply\.github\.com$'
 
 deny_patterns() { [[ -f $denylist ]] && grep -vE '^\s*(#|$)' "$denylist"; }
 
@@ -37,7 +39,7 @@ case "${1:-}" in
   --author)
     for who in GIT_AUTHOR_IDENT GIT_COMMITTER_IDENT; do
       email=$(git var "$who" | sed 's/.*<\(.*\)>.*/\1/')
-      grep -qE "$allow" <<<"$email" || report "$who email '$email' is not a noreply address"
+      grep -qE "$author_allow" <<<"$email" || report "$who email '$email' is not a users.noreply.github.com address"
     done ;;
   --commit-msg)
     scan "commit message" <(grep -v '^#' "$2") ;;
