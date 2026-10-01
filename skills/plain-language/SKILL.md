@@ -1,6 +1,6 @@
 ---
 name: plain-language
-description: Rewrite, review, or write text in plain language, following the US federal plain language guidelines (digital.gov, Plain Writing Act of 2010), so readers can find what they need, understand it, and act on it the first time they read it. Use when the user says "plain language", "make this easier to understand", "simplify this", "too jargony", "rewrite for a general audience", "ELI5 this doc", or asks for a plain-language review of docs, emails, policies, error messages, READMEs, or UI copy.
+description: Rewrite, review, or write text in plain language, following the US federal plain language guidelines (digital.gov, Plain Writing Act of 2010), so readers can find what they need, understand it, and act on it the first time they read it. Use when the user says "plain language", "make this easier to understand", "simplify this text", "too jargony", "rewrite for a general audience", "ELI5 this doc", or asks for a plain-language review of docs, emails, policies, error messages, READMEs, or UI copy.
 ---
 
 # Plain language
