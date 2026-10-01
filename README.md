@@ -12,6 +12,8 @@ plugin.json                        # Agent Plugins manifest: Codex + Copilot (ha
 .claude-plugin/plugin.json         # Claude Code manifest (no "version", so it tracks git SHA)
 .claude-plugin/marketplace.json    # marketplace for Claude Code + Copilot
 .agents/plugins/marketplace.json   # marketplace for Codex
+justfile                           # new / validate / bump / try
+scripts/check-pii.sh               # privacy guard hook (see below)
 ```
 
 ## Install (one time per machine)
@@ -86,7 +88,7 @@ file contents and commit messages, and requires a noreply commit email. (The com
 *name* is not checked.)
 
 - **Generic, committed:** absolute home paths (`/Users/…`, `/home/…`, `C:\Users\…`), email
-  addresses other than GitHub noreply, and private LAN IPs.
+  addresses (except GitHub/Anthropic noreply and `example.com`/`example.org`), and private LAN IPs.
 - **Personal, never committed:** create a gitignored `.pii-denylist` with one fixed string per
   line (real name, macOS username, computer name, personal email). Each machine needs its own.
 

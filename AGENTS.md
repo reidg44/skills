@@ -3,6 +3,7 @@
 This repo is a skills-only plugin consumed by Claude Code, Codex, and Copilot CLI. See README.md.
 
 - Skills live in `skills/<name>/SKILL.md` with `name` (equal to the dir name) and `description` frontmatter. Write skills tool-agnostically: don't assume Claude-only tools or frontmatter.
+- Keep skills people- and project-agnostic: never mention specific repos, projects, products, people, or one person's habits. State the rule itself, not the backstory behind it.
 - Do NOT add `version` to `.claude-plugin/plugin.json`. Claude Code would pin to it and stop tracking commits.
 - The root `plugin.json` `version` is for Copilot/Codex. Run `just bump` when shipping skill changes.
 - Keep the plugin name `reidg44-skills` and marketplace name `reidg44` in sync across all four manifests.

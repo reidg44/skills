@@ -1,11 +1,11 @@
 ---
 name: bootstrap-project
-description: Scaffold a new project/experiment repo the user's standard way - git, uv (Python), prek+betterleaks hooks, justfile, .gitignore with secrets excluded, README + AGENTS.md. Use when starting a new project, running /init on an empty repo, or when the user says "set up the project" / "new experiment".
+description: Scaffold a new project/experiment repo with a consistent standard setup - git, uv (Python), prek+betterleaks hooks, justfile, .gitignore with secrets excluded, README + AGENTS.md. Use when starting a new project, running /init on an empty repo, or when the user says "set up the project" / "new experiment".
 ---
 
 # Bootstrap a new project
 
-The user starts many short-lived experiment repos and wants each one set up the same way. Do it all in one pass, without asking about each piece.
+Set up every new repo the same way, in one pass, without asking about each piece.
 
 ## Standard scaffold
 
@@ -19,7 +19,7 @@ The user starts many short-lived experiment repos and wants each one set up the 
    Then replace the generated `pyproject.toml` with **`assets/pyproject.toml`** (in this skill dir): fill in `name`, `description`, and `dependencies`; keep the pytest + ruff config block verbatim. It's **application-style** (no `[build-system]`), which is the default. Only add a build backend + `[tool.hatch...]`/`[project.scripts]` if the user actually wants an installable package.
    Type hints, PEP 8, docstrings. Linter/formatter is **ruff** with `select = ["ALL"]` and the Google docstring convention, already configured in the template.
    ⚠️ Do NOT use `httpx`. Prefer `requests`/`aiohttp` (or stdlib) as appropriate.
-   ⚠️ The user writes the Python application code themselves. Scaffold config/tooling, but do NOT author `.py` modules unprompted.
+   ⚠️ Scaffold config and tooling only. Do NOT write application `.py` modules unless asked.
 
 3. **Git hooks:** run the `prek-setup` skill (prek + betterleaks, `prek install -f`, `prek run --all-files`).
 
@@ -28,7 +28,7 @@ The user starts many short-lived experiment repos and wants each one set up the 
 5. **justfile** at the project root. Use `just` for common actions. Seed it with whatever applies: `build`, `test`, `run`, `lint`. Keep recipes short.
 
 6. **README.md + AGENTS.md:**
-   - README: what this is, how to set up and run. Assume a fresh MacBook: the user clones experiments onto multiple machines, so setup instructions must actually work.
+   - README: what this is, how to set up and run. Assume a fresh machine, so setup instructions must actually work from a clean clone.
    - AGENTS.md: project purpose, commands, gotchas. Keep it current and easy to append to, since sessions end with doc updates. Also create `CLAUDE.md` containing just `@AGENTS.md` so Claude Code, Codex, and Copilot all read the same instructions.
 
 7. **Secrets pattern:** create `.env.example` with placeholder names. Tell the user to put real values in `.env` themselves. Never ask them to paste credentials into the chat.
@@ -38,4 +38,4 @@ The user starts many short-lived experiment repos and wants each one set up the 
 ## Finish
 
 - If running in Claude Code, suggest `/claude-automation-recommender` for project-specific automations.
-- First commit only when the user asks. Commits are signed and need the user at the keyboard.
+- Make the first commit only when the user asks. Commits may be signed and need the user present.

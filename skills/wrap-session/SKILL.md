@@ -5,7 +5,7 @@ description: End-of-session ritual - clean up debug files, update AGENTS.md/CLAU
 
 # Wrap up the session
 
-The user ends nearly every working session asking for some combination of "clean up the debug files", "update the documentation with what you learned", and "document status so a future agent can pick this up". Do all of it as one ritual.
+Ending a session usually means some combination of "clean up the debug files", "update the documentation with what you learned", and "document status so a future agent can pick this up". Do all of it as one ritual.
 
 ## Steps, in order
 
@@ -20,6 +20,6 @@ The user ends nearly every working session asking for some combination of "clean
 
 3. **Write STATUS.md:** what was completed, what remains with concrete next steps, blockers/decisions needed, and exact commands to resume.
 
-4. **Flag uncommitted work, do not commit.** List modified/untracked files worth committing. Commits are signed and need the user at the keyboard. If they said they're stepping away, explicitly note "uncommitted changes ready for you to commit" in STATUS.md instead of attempting it.
+4. **Flag uncommitted work, do not commit.** List modified/untracked files worth committing. Commits may be signed and need the user present. If they said they're stepping away, explicitly note "uncommitted changes ready for you to commit" in STATUS.md instead of attempting it.
 
 5. **One-line summary** back to the user: docs touched, files cleaned, where STATUS.md points next.
