@@ -1,0 +1,335 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Launch film</title>
+<!--
+  Deterministic launch-film engine. Everything on screen is a pure function of
+  t (seconds): window.renderAt(t). Project-specific choreography lives in
+  config.js (window.FILM) — this file should rarely need editing.
+  Served from the APP'S OWN ORIGIN by scripts/render.py so the live-app
+  iframes are same-origin and scriptable.
+-->
+<style>
+:root{--a:#3bd671;--a2:#4f9dff;--ink:#f4f4f6;--mut:#9a9aa3;--bg:#050507;--neg:#ff6b6b}
+*{box-sizing:border-box}
+html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:var(--bg);color:var(--ink);
+  font-family:var(--font,system-ui,-apple-system,"SF Pro Display",sans-serif);-webkit-font-smoothing:antialiased;font-variant-numeric:tabular-nums}
+#stage{position:absolute;inset:0;overflow:hidden;background:var(--bg)}
+#grid{position:absolute;left:-200px;top:-200px;width:2320px;height:1480px;
+  background-image:radial-gradient(circle,rgba(255,255,255,.075) 1.2px,transparent 1.6px);background-size:40px 40px}
+#aurora{position:absolute;inset:0}
+.blob{position:absolute;border-radius:50%;filter:blur(90px)}
+#world{position:absolute;inset:0;perspective:2400px}
+#panel{position:absolute;overflow:hidden;background:#08080a;box-shadow:0 60px 140px rgba(0,0,0,.75),0 0 0 1px rgba(255,255,255,.07)}
+/* NOT display:none at boot — iframes under a display:none ancestor never lay out, so every rect prep() measures would be 0. renderAt() hides them after prep. */
+#panel iframe,.tile iframe{position:absolute;left:0;top:0;border:0;transform-origin:0 0;background:#08080a;visibility:hidden}
+#panelSheen{position:absolute;inset:0;pointer-events:none;background:linear-gradient(115deg,rgba(255,255,255,.07),rgba(255,255,255,0) 38%)}
+#quad{position:absolute;inset:0;transform-style:preserve-3d}
+.tile{position:absolute;overflow:hidden;border-radius:20px;background:#08080a;box-shadow:0 30px 80px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.08)}
+.chip{position:absolute;left:22px;bottom:20px;padding:10px 16px;border-radius:999px;background:rgba(8,8,10,.82);
+  border:1px solid rgba(255,255,255,.1);font-size:21px;font-weight:650;letter-spacing:-.01em}
+.chip b{font-weight:650;margin-left:10px}
+.wallHalf{position:absolute;inset:0;display:none}
+.wall{position:absolute;left:960px;top:540px;width:0;height:0;transform-style:preserve-3d}
+.wall img{position:absolute;border-radius:26px;box-shadow:0 30px 90px rgba(0,0,0,.7),0 0 0 2px rgba(255,255,255,.07)}
+#hook{position:absolute;inset:0;perspective:1600px}
+.card{position:absolute;width:330px;padding:20px 22px 18px;border-radius:18px;background:linear-gradient(160deg,#15161d,#0f0f14);
+  border:1px solid #23242e;box-shadow:0 30px 70px rgba(0,0,0,.65)}
+.card .k{font-size:17px;color:var(--mut);display:flex;align-items:center;gap:9px}
+.card .k i{width:8px;height:8px;border-radius:50%;display:inline-block}
+.card .v{margin-top:8px;font-size:38px;font-weight:700;letter-spacing:-.035em}
+.word{position:absolute;left:0;width:1920px;text-align:center;top:300px;font-size:168px;font-weight:720;letter-spacing:-.055em;line-height:1;white-space:nowrap;clip-path:inset(-10% 0 -18% 0)}
+.dot{color:var(--a)}
+.col{position:absolute;top:0;height:1080px;width:680px}
+.eb{position:absolute;top:356px;font-size:22px;font-weight:650;letter-spacing:.22em;color:var(--a);text-transform:uppercase}
+.hl{position:absolute;top:404px;width:680px;font-weight:720;letter-spacing:-.05em;line-height:.98}
+.hl .ln{display:block;overflow:hidden;padding-bottom:.08em;margin-bottom:-.08em}
+.hl .ln > span{display:inline-block}
+.sub{position:absolute;width:520px;font-size:26px;color:var(--mut);letter-spacing:-.01em;line-height:1.35}
+.big{position:absolute;left:0;top:462px;width:1920px;text-align:center;font-size:150px;font-weight:720;letter-spacing:-.055em;line-height:1;
+  text-shadow:0 10px 60px rgba(0,0,0,.9),0 0 120px rgba(0,0,0,.9)}
+#fx{position:absolute;inset:0;overflow:visible}
+#logoImg{position:absolute;display:none}
+#wordmark{position:absolute;font-size:132px;font-weight:690;letter-spacing:-.045em;line-height:1;white-space:nowrap;display:none}
+#wordmark span{display:inline-block}
+#tag{position:absolute;left:0;top:640px;width:1920px;text-align:center;font-size:40px;font-weight:560;letter-spacing:-.02em;color:var(--mut);display:none}
+#tag b{color:var(--ink);font-weight:620}
+#flash{position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;opacity:0}
+#vig{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at 50% 50%,rgba(0,0,0,0) 55%,rgba(0,0,0,.55) 100%)}
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="aurora"><div class="blob" id="bA"></div><div class="blob" id="bB"></div></div>
+  <div id="grid"></div>
+  <div id="world">
+    <div id="panel"><div id="panelSheen"></div></div>
+    <div id="quad"></div>
+    <div class="wallHalf" id="wallTop"><div class="wall"></div></div>
+    <div class="wallHalf" id="wallBot"><div class="wall"></div></div>
+  </div>
+  <div id="hook"></div>
+  <div class="col" id="colL" style="left:118px"></div>
+  <div class="col" id="colR" style="left:1218px"></div>
+  <div id="bigType"></div>
+  <svg id="fx" width="1920" height="1080" viewBox="0 0 1920 1080">
+    <defs>
+      <linearGradient id="trail" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1920" y2="0">
+        <stop offset="0" stop-color="var(--a)" stop-opacity="0" class="acs"/><stop offset="1" stop-color="var(--a)" class="acs"/>
+      </linearGradient>
+      <linearGradient id="lg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" class="ac1"/><stop offset="1" class="ac2"/></linearGradient>
+      <radialGradient id="headGlow"><stop offset="0" stop-color="#ffffff"/><stop offset=".25" class="acs" stop-opacity=".9"/><stop offset="1" class="acs" stop-opacity="0"/></radialGradient>
+      <!-- userSpaceOnUse: an objectBoundingBox filter on a perfectly straight line has a zero-height box and renders NOTHING -->
+      <filter id="bloom" filterUnits="userSpaceOnUse" x="-300" y="-300" width="2520" height="1680"><feGaussianBlur stdDeviation="7" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+      <filter id="bloomBig" filterUnits="userSpaceOnUse" x="-300" y="-300" width="2520" height="1680"><feGaussianBlur stdDeviation="38"/></filter>
+    </defs>
+    <g id="hookLine" style="display:none"><path id="hl" fill="none" stroke="url(#trail)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" filter="url(#bloom)"/>
+      <circle id="hh" r="46" fill="url(#headGlow)"/><circle id="hh2" r="6" fill="#fff"/></g>
+    <path id="slash" fill="none" class="acstroke" stroke-width="5" stroke-linecap="round" filter="url(#bloom)" style="opacity:0"/>
+    <g id="logoG" style="display:none">
+      <rect id="logoBloom" fill="url(#lg)" filter="url(#bloomBig)"/>
+      <rect id="logoFill" fill="url(#lg)"/>
+      <path id="snake" fill="none" class="acstroke" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" filter="url(#bloom)"/>
+    </g>
+  </svg>
+  <img id="logoImg">
+  <div id="wordmark"></div>
+  <div id="tag"></div>
+  <div id="flash"></div>
+  <div id="vig"></div>
+</div>
+<script src="config.js"></script>
+<script>
+// ───────────────────────── math ─────────────────────────
+const clamp=(x,a=0,b=1)=>Math.min(b,Math.max(a,x));
+const lerp=(a,b,t)=>a+(b-a)*t;
+const P=(t,a,b)=>clamp((t-a)/(b-a));
+const E={lin:x=>x,
+  outExpo:x=>x>=1?1:1-Math.pow(2,-10*x), inExpo:x=>x<=0?0:Math.pow(2,10*x-10),
+  inOutExpo:x=>x<=0?0:x>=1?1:x<.5?Math.pow(2,20*x-10)/2:(2-Math.pow(2,-20*x+10))/2,
+  outCubic:x=>1-Math.pow(1-x,3), inCubic:x=>x*x*x, inOutCubic:x=>x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2,
+  outQuint:x=>1-Math.pow(1-x,5), outBack:x=>{const c1=1.6,c3=c1+1;return 1+c3*Math.pow(x-1,3)+c1*Math.pow(x-1,2)}};
+const spring=(x,z=.42,w=16)=>x<=0?0:1-Math.exp(-z*w*x)*Math.cos(w*Math.sqrt(1-z*z)*x);
+/** keyframe track: [[t,v,ease],…] — v number or array; ease names the segment ENDING at that key */
+function kf(t,keys){if(t<=keys[0][0])return keys[0][1];
+  for(let i=1;i<keys.length;i++){const [t1,v1,e]=keys[i],[t0,v0]=keys[i-1];
+    if(t<=t1){const p=(E[e||'inOutCubic'])((t-t0)/(t1-t0));return Array.isArray(v0)?v0.map((a,j)=>lerp(a,v1[j],p)):lerp(v0,v1,p)}}
+  return keys[keys.length-1][1]}
+const hash=n=>{const s=Math.sin(n*127.1+311.7)*43758.5453;return s-Math.floor(s)};
+const noise1=x=>{const i=Math.floor(x),f=x-i,u=f*f*(3-2*f);return lerp(hash(i),hash(i+1),u)*2-1};
+const $=id=>document.getElementById(id);
+const el=(tag,cls,parent,html)=>{const e=document.createElement(tag);if(cls)e.className=cls;if(html!=null)e.innerHTML=html;if(parent)parent.appendChild(e);return e};
+const css=(e,o)=>{for(const k in o)e.style[k]=o[k]};
+
+// ───────────────────────── live-app helpers (passed to config hooks as `u`) ─────────────────────────
+const findText=(doc,txt)=>{let best=null;const all=[...doc.querySelectorAll('main *, body *')];
+  all.forEach(e=>{if(e.textContent.trim()===txt&&(!best||best.contains(e)))best=e});
+  if(!best)all.forEach(e=>{if(e.textContent.trim().startsWith(txt)&&(!best||best.contains(e)))best=e}); // labels often carry an info-icon glyph
+  if(!best)console.log('PREP FAIL text not found:',txt);return best};
+const cardOf=(e,match=FILM.cardClass||'bg-card')=>{while(e&&!(e.className&&String(e.className).includes(match)))e=e.parentElement;return e};
+const rectOf=e=>{if(!e)return {x:0,y:0,w:0,h:0,cx:600,cy:400};const r=e.getBoundingClientRect();return {x:r.x,y:r.y,w:r.width,h:r.height,cx:r.x+r.width/2,cy:r.y+r.height/2}};
+const unionRect=els=>{const rs=els.map(e=>e.getBoundingClientRect());const x0=Math.min(...rs.map(r=>r.x)),x1=Math.max(...rs.map(r=>r.right)),y0=Math.min(...rs.map(r=>r.y)),y1=Math.max(...rs.map(r=>r.bottom));return {x:x0,y:y0,w:x1-x0,h:y1-y0,cx:(x0+x1)/2,cy:(y0+y1)/2}};
+const NUMRE=/\d[\d,]*(\.\d+)?/g;
+/** number roller: keeps prefixes/suffixes/decimals of the ORIGINAL text; set(p) with p 0→1 */
+function roller(e){if(!e)return {set(){}};const orig=e.textContent;return {e,orig,set(p){
+  if(p>=1){e.textContent=orig;return}
+  e.textContent=orig.replace(NUMRE,m=>{const d=(m.split('.')[1]||'').length;const v=parseFloat(m.replace(/,/g,''))*p;
+    return v.toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d})})}}}
+/** bars drawn as inline width:% (most dashboards) */
+function barsIn(root,prop='width'){return root?[...root.querySelectorAll(`[style*="${prop}"]`)].filter(b=>/%/.test(b.style[prop])).map(b=>({b,v:parseFloat(b.style[prop])})):[]}
+function growBars(bars,lt,start=.08,stagger=.05,dur=.55,prop='width'){bars.forEach((b,i)=>b.b.style[prop]=b.v*E.outExpo(clamp((lt-start-i*stagger)/dur))+'%')}
+/** left→right reveal — works on any element (svg charts, stacked bars); preserves dashed strokes, unlike dashoffset drawing */
+function reveal(e,p){if(e)e.style.clipPath=p>=1?'none':`inset(-20px ${(1-p)*100}% -20px -20px)`}
+/** pop a list of elements (e.g. heatmap tiles) with a staggered spring */
+function popIn(els,lt,start=.06,stagger=.045){els.forEach((d,i)=>{const x=lt-start-i*stagger;css(d,{opacity:clamp(x*8),transform:`scale(${lerp(.55,1,clamp(spring(x,.5,17),0,1.2))})`,transformOrigin:'50% 50%'})})}
+const u={kf,E,P,clamp,lerp,spring,findText,cardOf,rectOf,unionRect,roller,barsIn,growBars,reveal,popIn,css};
+
+// ───────────────────────── setup from config ─────────────────────────
+const F=FILM, T=F.T, B=F.brand;
+document.documentElement.style.setProperty('--a',B.accent);document.documentElement.style.setProperty('--a2',B.accent2||B.accent);
+document.documentElement.style.setProperty('--bg',B.bg||'#050507');if(B.font)document.documentElement.style.setProperty('--font',B.font);
+document.querySelectorAll('.acs').forEach(s=>s.setAttribute('stop-color',B.accent));
+document.querySelectorAll('.acstroke').forEach(s=>s.setAttribute('stroke',B.accent));
+document.querySelector('.ac1').setAttribute('stop-color',B.accent);document.querySelector('.ac2').setAttribute('stop-color',B.accent2||B.accent);
+$('flash').style.background=`radial-gradient(circle at 50% 50%,#ffffff 0%,${B.accent} 42%,rgba(0,0,0,0) 75%)`;
+
+const frames={},H={};
+function mkFrame(path,parent,w=F.appViewport||1440){const f=el('iframe',null,parent);f.src=path;f.style.width=w+'px';frames[path]=f;return f}
+F.shots.forEach(s=>{if(!frames[s.page])mkFrame(s.page,$('panel'))});
+$('panel').appendChild($('panelSheen'));
+(F.quad?F.quad.tiles:[]).forEach(q=>{const t=el('div','tile',$('quad'));q.el=t;css(t,{left:q.x+'px',top:q.y+'px',width:'900px',height:'480px'});
+  mkFrame(q.page,t);q.chip=el('div','chip',t,`<span style="color:${q.dot||B.accent}">●</span>&nbsp; ${q.label}${q.val?`<b>${q.val}</b>`:''}`)});
+
+function prepFrame(path,doc){
+  const st=doc.createElement('style');
+  st.textContent=`${F.hideSelectors||''}{display:none!important}
+  *{transition:none!important;animation:none!important;caret-color:transparent!important}
+  html,body{overflow:hidden!important;scrollbar-width:none}::-webkit-scrollbar{display:none}`;
+  doc.head.appendChild(st);
+  frames[path].style.height=Math.max(900,doc.documentElement.scrollHeight)+'px';
+}
+/** camera inside a viewport: page point (px,py) at the viewport centre, scale s */
+function cam(path,vw,vh,px,py,s){const f=frames[path];f.style.visibility='visible';f.style.transform=`translate(${vw/2-px*s}px,${vh/2-py*s}px) scale(${s})`}
+
+// ───────────────────────── hook: the pulse line + words + cards ─────────────────────────
+const HK=F.hook||{words:[],cards:[]};
+const hook=$('hook');
+HK.cards.forEach(a=>{a.el=el('div','card',hook,`<div class="k"><i style="background:${a.c||B.accent}"></i>${a.k}</div><div class="v">${a.v}</div>`);
+  a.ve=a.el.querySelector('.v');if(/^[−-]/.test(a.v))a.ve.style.color='var(--neg)'});
+HK.words.forEach(w=>{const m=el('div','word',hook);w.el=m;m.innerHTML=`<span style="display:inline-block">${w[0]}<span class="dot">.</span></span>`;w.in=m.firstChild});
+const LINEY=HK.lineY||640, hookEnd=T.drop;
+const headX=t=>lerp(700,1420,E.outCubic(clamp(t/(hookEnd-.5)))*.55+clamp(t/(hookEnd-.5))*.45);
+const spikes=HK.words.map(w=>({x:headX(w[1])+.01})).concat([{x:330},{x:90}]); // two pre-drawn spikes ⇒ frame 1 already reads as "a pulse"
+function lineY(x){let y=0;for(const s of spikes){const d=x-s.x;if(d>-6&&d<70){y+=d<0?0:d<10?-d*7.5:d<26?-75+(d-10)*6.9:d<44?35-(d-26)*2.4:-8+(d-44)*.3}}return LINEY+y}
+const scramble=(str,p,seed)=>{let n=0;const tot=(str.match(/\d/g)||[]).length;return str.replace(/\d/g,d=>{n++;return (n/tot)<=p?d:String(Math.floor(hash(seed+n*7.3+Math.floor(p*24))*10))})};
+function renderHook(t){
+  const on=t<hookEnd&&HK.words.length;hook.style.display=on?'block':'none';$('hookLine').style.display=on?'inline':'none';if(!on)return;
+  const k=E.inExpo(P(t,hookEnd-.58,hookEnd-.02)),cx=960,cy=540; // everything is sucked into the centre on the last half-beat
+  HK.cards.forEach((a,i)=>{const lt=t-a.t,vis=lt>=0;a.el.style.display=vis?'block':'none';if(!vis)return;
+    const sp=spring(lt,.5,15),fl=Math.sin((t+i)*1.3)*6;
+    css(a.el,{transform:`translate3d(${lerp(a.x,cx,k)-165}px,${lerp(a.y+fl,cy,k)-55}px,${(a.z||0)*(1-k)}px) rotateY(${(a.x<960?14:-14)*(1-k)}deg) rotateX(${6*(1-k)}deg) scale(${lerp(.82,1,sp)*(1-k*.9)})`,
+      opacity:clamp(lt*8)*(1-P(t,hookEnd-.2,hookEnd-.03)),filter:`blur(${Math.max(0,-(a.z||0)-200)/90*(1-k)+k*6}px)`});
+    a.ve.textContent=scramble(a.v,E.outCubic(clamp(lt/.42)),i*13)});
+  HK.words.forEach((w,i)=>{const t0=w[1],t1=i<HK.words.length-1?HK.words[i+1][1]:hookEnd-.55;const vis=t>=t0&&t<t1+.12;w.el.style.display=vis?'block':'none';if(!vis)return;
+    let pin=E.outExpo(clamp((t-t0)/.22));if(i===0&&t0<=0)pin=E.outExpo(clamp(.55+t/.22*.45)); // frame 1 is already composed
+    const pout=E.inCubic(clamp((t-t1)/.12));
+    css(w.in,{transform:`translateY(${(1-pin)*90-pout*70}px) scale(${1-k*.6})`,opacity:(i===0&&t0<=0)?1-pout:pin*(1-pout),filter:`blur(${(1-pin)*14+pout*10}px)`})});
+  const hx=headX(t),pts=[];for(let x=-40;x<=hx;x+=4)pts.push([x,lineY(x)]);pts.push([hx,lineY(hx)]);
+  const sx=x=>lerp(x,cx,k),sy=y=>lerp(y,cy,k);
+  $('hl').setAttribute('d','M'+pts.map(p=>sx(p[0]).toFixed(1)+' '+sy(p[1]).toFixed(1)).join('L'));
+  $('trail').setAttribute('x1',sx(hx)-760);$('trail').setAttribute('x2',sx(hx));
+  ['hh','hh2'].forEach(id=>{$(id).setAttribute('cx',sx(hx));$(id).setAttribute('cy',sy(lineY(hx)))});
+  $('hh').setAttribute('r',46+k*160+Math.max(0,1-((t%.5)/.18))*22);
+}
+
+// ───────────────────────── type columns ─────────────────────────
+const TYPED=F.shots.filter(s=>s.hl);
+TYPED.forEach(s=>{const g=el('div',null,$(s.typeSide==='R'?'colR':'colL'));s.g=g;css(g,{position:'absolute',inset:0,display:'none'});
+  s.ebE=el('div','eb',g,s.eb||'');
+  s.hlE=el('div','hl',g,s.hl.map(l=>`<span class="ln"><span>${l.replace(/([.?!])$/,'<span class="dot">$1</span>')}</span></span>`).join(''));
+  s.subE=el('div','sub',g,s.sub||'');s.lines=[...s.hlE.querySelectorAll('.ln > span')];
+  const big=s.hl.some(l=>l.length>10);s.hlE.style.fontSize=(big?96:118)+'px';s.subE.style.top=(big?640:670)+'px'});
+function renderType(t){TYPED.forEach(s=>{const t0=s.typeAt??s.t0,on=t>=t0-.02&&t<s.t1;s.g.style.display=on?'block':'none';if(!on)return;
+  const lt=t-t0,out=E.inExpo(P(t,s.t1-.2,s.t1-.02)),eb=E.outExpo(clamp((lt-.02)/.35));
+  css(s.ebE,{opacity:eb*(1-out),transform:`translateX(${(1-eb)*-30}px)`,letterSpacing:lerp(.5,.22,eb)+'em'});
+  s.lines.forEach((l,i)=>{const p=E.outExpo(clamp((lt-.06-i*.07)/.42));css(l,{transform:`translateY(${(1-p)*105-out*105}%) rotate(${(1-p)*4}deg)`,filter:`blur(${(1-p)*6}px)`})});
+  const sp=E.outCubic(clamp((lt-.32)/.5));css(s.subE,{opacity:sp*(1-out)*.95,transform:`translateY(${(1-sp)*16}px)`})})}
+
+// ───────────────────────── the persistent UI window ─────────────────────────
+const PR={x:770,y:110,w:1050,h:860},PL={x:100,y:110,w:1050,h:860},FULL={x:0,y:0,w:1920,h:1080};
+const mixR=(a,b,p)=>({x:lerp(a.x,b.x,p),y:lerp(a.y,b.y,p),w:lerp(a.w,b.w,p),h:lerp(a.h,b.h,p)});
+const panelFor=s=>s.typeSide==='R'?PL:PR, ryFor=s=>s.typeSide==='R'?11:-11;
+u.PR=PR;u.PL=PL;u.FULL=FULL;u.mixR=mixR;
+function shake(t,t0,amp,dur=.35){const p=P(t,t0,t0+dur);if(p<=0||p>=1)return [0,0];const a=amp*Math.pow(1-p,2);return [noise1(t*60)*a,noise1(t*60+50)*a]}
+function setPanel(r,rad,ry,rx=0,tz=0){css($('panel'),{display:'block',left:r.x+'px',top:r.y+'px',width:r.w+'px',height:r.h+'px',borderRadius:rad+'px',
+  transform:`translateZ(${tz}px) rotateX(${rx}deg) rotateY(${ry}deg)`})}
+function renderPanel(t){
+  const i=F.shots.findIndex(s=>t>=s.t0&&t<s.t1);
+  Object.values(frames).forEach(f=>{if(f.parentElement===$('panel'))f.style.visibility='hidden'});
+  if(i<0){$('panel').style.display='none';return}
+  const s=F.shots[i],prev=F.shots[i-1],lt=t-s.t0;
+  let r,rad=26,ry,rx=lerp(4,1.5,E.outCubic(clamp(lt/2))),tz=lerp(-120,0,E.outExpo(clamp(lt/.6)));
+  if(s.layout==='full'){ // full-bleed macro that settles into a side window at s.settle
+    const m=s.settle?E.inOutExpo(P(t,s.settle,s.settle+1.05)):0;r=mixR(FULL,panelFor(s),m);rad=lerp(0,26,m);ry=lerp(0,ryFor(s),m);rx=0;tz=0;
+    const [sx,sy]=shake(t,s.t0,26);r={x:r.x+sx,y:r.y+sy,w:r.w,h:r.h};
+  }else{ // glide in from the previous shot's side across the downbeat (pre-rolls 0.16 s)
+    const from=prev?panelFor(prev):panelFor(s),fromRY=prev?ryFor(prev):ryFor(s);
+    const m=E.inOutExpo(clamp((lt+.16)/.5));r=mixR(from,panelFor(s),m);
+    ry=lerp(fromRY,ryFor(s),m)+(s.typeSide==='R'?-1:1)*lt*1.6;
+  }
+  setPanel(r,rad,ry,rx,tz);
+  const h=H[s.page];const [px,py,sc]=s.cam(lt,h,{vw:r.w,vh:r.h,t});
+  const whip=s.whipOut?E.inExpo(P(t,s.t1-.28,s.t1)):0;
+  cam(s.page,r.w,r.h,px,py+whip*900,sc);
+  if(s.anim)s.anim(lt,h,u,t);
+}
+
+// ───────────────────────── four-up grid ─────────────────────────
+function renderQuad(t){const Q=F.quad;if(!Q){return}const on=t>=Q.t0-.01&&t<Q.t1;$('quad').style.display=on?'block':'none';
+  Q.tiles.forEach(q=>frames[q.page].style.visibility=on?'visible':'hidden');if(!on)return;
+  const lt=t-Q.t0,rot=kf(lt,[[0,[10,-7]],[2,[4,-2],'outCubic']]),out=E.inExpo(P(t,Q.t1-.25,Q.t1));
+  css($('quad'),{transform:`translateZ(${-80-lt*40-out*600}px) rotateX(${rot[0]}deg) rotateY(${rot[1]}deg)`,opacity:1-out*.4});
+  Q.tiles.forEach((q,i)=>{const t0=i*.25,sp=spring(lt-t0,.55,15);
+    css(q.el,{opacity:clamp((lt-t0)*6),transform:`translateY(${(1-clamp(sp,0,1.3))*80}px) scale(${lerp(.86,1,clamp(sp,0,1.2))})`});
+    const h=H[q.page],[px,py,s]=q.frame(h);
+    cam(q.page,900,480,px+Math.sin(lt*.8+i)*8,py+Math.cos(lt*.7+i)*6,s*lerp(1.1,1,E.outCubic(clamp(lt/1.6))));
+    if(q.anim)q.anim(lt-t0,h,u);
+    const cp=E.outExpo(clamp((lt-t0-.25)/.4));css(q.chip,{opacity:cp,transform:`translateY(${(1-cp)*14}px)`})})}
+
+// ───────────────────────── wall of screens + the cut ─────────────────────────
+const W=F.wall,walls=[...document.querySelectorAll('.wall')];
+if(W){const n=W.tiles.length,cols=W.cols||5,rows=Math.ceil(n/cols),TW=1440,TH=900,GAP=60;
+  W.order=W.order||[...Array(n).keys()].sort((a,b)=>hash(a*3.1)-hash(b*3.1));
+  walls.forEach(w=>W.tiles.forEach((src,i)=>{const im=el('img',null,w);im.src=src;const c=i%cols,r=Math.floor(i/cols);
+    css(im,{width:TW+'px',height:TH+'px',left:((c-(cols-1)/2)*(TW+GAP)-TW/2)+'px',top:((r-(rows-1)/2)*(TH+GAP)-TH/2)+'px'})}));
+  (W.words||[]).forEach(b=>{b.el=el('div','big',$('bigType'),b[0].replace(/\.$/,'<span class="dot">.</span>'))});}
+function renderWall(t){if(!W)return;const on=t>=W.t0&&t<T.cut+.7;['wallTop','wallBot'].forEach(id=>$(id).style.display=on?'block':'none');
+  (W.words||[]).forEach(b=>b.el.style.display='none');if(!on)return;
+  const lt=t-W.t0,s=kf(lt,[[0,1.15],[1.55,.215,'outExpo'],[2,.2,'lin']]),rx=kf(lt,[[0,0],[1.55,24,'outExpo'],[2,26,'lin']]),
+    rz=kf(lt,[[0,0],[1.55,-9,'outExpo'],[2,-10,'lin']]),ty=kf(lt,[[0,0],[1.55,30,'outExpo'],[2,24,'lin']]);
+  const cut=E.outExpo(P(t,T.cut+.12,T.cut+.7));
+  walls.forEach((w,wi)=>{css(w,{transform:`translate(0px,${ty+(wi?1:-1)*cut*620}px) rotateX(${rx}deg) rotateZ(${rz+(wi?1:-1)*cut*4}deg) scale(${s})`,opacity:1-cut*.85});
+    [...w.children].forEach((im,i)=>{const t0=W.order.indexOf(i)*.047;const v=lt>=t0||i===W.order[0];
+      im.style.opacity=v?(lt-t0<.06?.55:1):0;im.style.filter=lt-t0<.12?`brightness(${1.8-clamp((lt-t0)/.12)*.8})`:'none'})});
+  if(t<T.cut+.12){$('wallTop').style.clipPath='none';$('wallBot').style.display='none'}else{$('wallTop').style.clipPath='inset(0 0 50% 0)';$('wallBot').style.clipPath='inset(50% 0 0 0)'}
+  (W.words||[]).forEach((b,i)=>{const t0=b[1],t1=i<W.words.length-1?W.words[i+1][1]:T.cut,vis=t>=t0&&t<t1;b.el.style.display=vis?'block':'none';if(!vis)return;
+    const l=t-t0,p=E.outExpo(clamp(l/.25));css(b.el,{opacity:clamp(l*14),transform:`scale(${lerp(1.25,1,p)+l*.03})`,filter:`blur(${(1-p)*10}px)`})})}
+
+// ───────────────────────── outro: the line becomes the logo ─────────────────────────
+const LS=150,LR=LS*(B.logoRadius??.29);
+$('wordmark').innerHTML=[...B.name].map(c=>`<span>${c===' '?'&nbsp;':c}</span>`).join('');$('tag').innerHTML=B.tagline||'';
+const wmSpans=[...$('wordmark').children];let wmW=0;
+if(B.logoImg){$('logoImg').src=B.logoImg}
+function snakePath(cx,cy){const x=cx-LS/2,y=cy-LS/2,r=LR;
+  return `M -400 ${cy} L ${x} ${cy} L ${x} ${y+r} Q ${x} ${y} ${x+r} ${y} L ${x+LS-r} ${y} Q ${x+LS} ${y} ${x+LS} ${y+r} L ${x+LS} ${y+LS-r} Q ${x+LS} ${y+LS} ${x+LS-r} ${y+LS} L ${x+r} ${y+LS} Q ${x} ${y+LS} ${x} ${y+LS-r} L ${x} ${cy}`}
+function renderOutro(t){
+  const sl=$('slash'),sn=$('snake'),lf=$('logoFill'),lb=$('logoBloom');
+  if(t>=T.cut-.02&&t<T.cut+.9){const p=E.outExpo(P(t,T.cut-.02,T.cut+.22));sl.setAttribute('d',`M -100 540 L ${lerp(-100,2020,p)} 540`);
+    sl.style.opacity=1-P(t,T.cut+.45,T.cut+.9);sl.setAttribute('stroke-width',lerp(10,3,P(t,T.cut,T.cut+.6)))}else sl.style.opacity=0;
+  const on=t>=T.cut+.35;$('logoG').style.display=on?'inline':'none';
+  if(!wmW)wmW=$('wordmark').getBoundingClientRect().width||$('wordmark').scrollWidth;
+  const gap=40,total=LS+gap+wmW,finalCx=960-total/2+LS/2,slide=E.inOutExpo(P(t,T.word-.15,T.word+.55));
+  const cx=lerp(960,finalCx,slide),cy=lerp(540,505,slide),push=1+E.outCubic(P(t,T.logo,T.end))*.035;
+  $('fx').style.transformOrigin='960px 520px';$('fx').style.transform=t>=T.cut?`scale(${push})`:'none';
+  const li=$('logoImg');li.style.display='none';
+  if(on){sn.setAttribute('d',snakePath(cx,cy));const L=sn.getTotalLength(),approach=400+(cx-LS/2);
+    const head=lerp(approach*.35,L,E.inOutCubic(P(t,T.cut+.35,T.logo))),tail=lerp(0,approach,E.inOutCubic(P(t,T.cut+.55,T.logo)));
+    sn.setAttribute('stroke-dasharray',`0 ${tail} ${Math.max(0,head-tail)} ${L*2}`);
+    const fill=E.outBack(P(t,T.logo,T.logo+.42)),sz=LS*lerp(.86,1,fill);
+    [lf,lb].forEach(r=>{r.setAttribute('x',cx-sz/2);r.setAttribute('y',cy-sz/2);r.setAttribute('width',sz);r.setAttribute('height',sz);r.setAttribute('rx',LR*sz/LS)});
+    const fo=P(t,T.logo-.02,T.logo+.08);lf.style.opacity=B.logoImg?0:fo;
+    lb.style.opacity=P(t,T.logo,T.logo+.06)*(1-P(t,T.logo+.1,T.logo+1.6))*.95+.18*P(t,T.logo+.4,T.logo+1.6);
+    sn.style.opacity=1-P(t,T.logo+.02,T.logo+.3);
+    if(B.logoImg&&fo>0){li.style.display='block';css(li,{left:(cx-sz/2)*push+960*(1-push)+'px',top:(cy-sz/2)*push+520*(1-push)+'px',width:sz*push+'px',height:sz*push+'px',opacity:fo,borderRadius:LR*sz/LS+'px'})}}
+  const wm=$('wordmark');wm.style.display=t>=T.word-.2?'block':'none';
+  css(wm,{left:(cx+LS/2+gap)+'px',top:(cy-70)+'px',transform:`scale(${push})`,transformOrigin:`${960-(cx+LS/2+gap)}px 70px`});
+  wmSpans.forEach((s,i)=>{const p=E.outExpo(clamp((t-T.word-i*.045)/.6));css(s,{opacity:p,transform:`translateY(${(1-p)*40}px)`,filter:`blur(${(1-p)*12}px)`})});
+  const tg=$('tag'),tp=E.outExpo(clamp((t-T.tag)/.8));tg.style.display=t>=T.tag?'block':'none';
+  css(tg,{opacity:tp,transform:`translateY(${(1-tp)*18}px) scale(${push})`,letterSpacing:lerp(.06,-.02,tp)+'em',transformOrigin:'960px -120px'})}
+
+// ───────────────────────── atmosphere + flashes ─────────────────────────
+function renderAtmos(t){
+  const kick=t>=T.drop&&t<T.cut?Math.exp(-((t-T.drop)%(60/F.bpm))*14)*.006:0;
+  css($('grid'),{transform:`translate(${-t*9}px,${-t*4}px) scale(${1+t*.004+kick})`,opacity:t<T.cut?lerp(.6,1,clamp(t/2)):lerp(1,.35,P(t,T.cut,T.cut+1))});
+  const lift=t>=T.cut?lerp(1,1.5,P(t,T.logo,T.logo+1)):1;
+  css($('bA'),{width:'900px',height:'900px',left:(200+Math.sin(t*.4)*160)+'px',top:(180+Math.cos(t*.33)*90)+'px',background:B.accent,opacity:(t<T.drop?.07+.1*P(t,T.drop-1.5,T.drop):.11)*lift});
+  css($('bB'),{width:'1000px',height:'1000px',left:(900+Math.cos(t*.37)*180)+'px',top:(100+Math.sin(t*.29)*120)+'px',background:B.accent2||B.accent,opacity:(t<T.drop?.05:.1)*lift});
+  const hit=(t0,a,k=12)=>t>=t0&&t<t0+.6?Math.exp(-(t-t0)*k)*a:0;
+  $('flash').style.opacity=Math.max(hit(T.drop,1,10),...(F.flashes||[]).map(([t0,a])=>hit(t0,a)),hit(T.logo,.45,9),t>=T.drop-.6&&t<T.drop?E.inExpo(P(t,T.drop-.6,T.drop))*.55:0);
+}
+
+// ───────────────────────── master ─────────────────────────
+window.renderAt=function(t){renderAtmos(t);renderHook(t);renderPanel(t);renderQuad(t);renderWall(t);renderType(t);renderOutro(t)};
+window.READY=false;
+(async()=>{
+  await Promise.all(Object.keys(frames).map(k=>new Promise(res=>{const f=frames[k],go=()=>setTimeout(res,F.settleMs||1800);
+    const d=f.contentDocument;if(d&&d.readyState==='complete'&&d.body&&d.body.children.length)go();else f.addEventListener('load',go,{once:true})})));
+  for(const k of Object.keys(frames)){const doc=frames[k].contentDocument;try{prepFrame(k,doc);H[k]={}}catch(e){console.log('PREP FAIL frame',k,e.stack)}}
+  for(const s of [...F.shots,...(F.quad?F.quad.tiles:[])]){if(s.prep){try{Object.assign(H[s.page],s.prep(frames[s.page].contentDocument,u)||{})}catch(e){console.log('PREP FAIL',s.page,e.stack)}}}
+  await Promise.all([...document.images].map(i=>i.decode().catch(()=>{})));
+  await document.fonts.ready;window.renderAt(0);window.READY=true;
+})();
+</script>
+</body>
+</html>
