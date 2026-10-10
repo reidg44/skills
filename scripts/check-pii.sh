@@ -7,7 +7,9 @@
 #
 # Generic patterns live here. Personal strings (real name, username, hostname, email)
 # go in .pii-denylist, one fixed string per line; it is gitignored so the list itself never leaks.
-# Silence a deliberate false positive by putting "pii-allow" on that line.
+# A "!string" line in .pii-denylist allows that string everywhere, like a .gitignore negation:
+# it is blanked out before checking, so other identifying info on the same line is still caught.
+# Silence a one-off false positive by putting "pii-allow" on that line.
 set -uo pipefail
 
 root=$(git rev-parse --show-toplevel)
@@ -20,19 +22,37 @@ allow='users\.noreply\.github\.com|noreply@anthropic\.com|@example\.(com|org)|pi
 # Commit author/committer must be GitHub noreply; the content allowlist above is too loose for that.
 author_allow='^[A-Za-z0-9._+-]+@users\.noreply\.github\.com$'
 
-deny_patterns() { [[ -f $denylist ]] && grep -vE '^\s*(#|$)' "$denylist"; }
+deny_patterns() { [[ -f $denylist ]] && grep -vE '^\s*(#|!|$)' "$denylist"; }
+allow_patterns() { [[ -f $denylist ]] && sed -n 's/^!//p' "$denylist"; }
+
+masked() { # masked <file>: print "N:line" with every allowed string blanked out (case-insensitive)
+  awk -v allow="$(allow_patterns)" '
+    BEGIN { n = split(tolower(allow), A, "\n") }
+    { s = $0; l = tolower(s)
+      for (i = 1; i <= n; i++) {
+        if (A[i] == "") continue
+        while ((p = index(l, A[i])) > 0) {
+          pad = sprintf("%" length(A[i]) "s", "")
+          s = substr(s, 1, p - 1) pad substr(s, p + length(A[i]))
+          l = substr(l, 1, p - 1) pad substr(l, p + length(A[i]))
+        }
+      }
+      print NR ":" s }' "$1"
+}
 
 fail=0
 report() { echo "✗ identifying info: $1"; fail=1; }
 
 scan() { # scan <label> <file>
-  local hits
-  hits=$(grep -nIE "$generic" "$2" | grep -vE "$allow")
-  [[ -n $hits ]] && while IFS= read -r l; do report "$1:$l"; done <<<"$hits"
-  if deny_patterns >/dev/null; then
-    hits=$(grep -nIiF -f <(deny_patterns) "$2" | grep -v 'pii-allow')
-    [[ -n $hits ]] && while IFS= read -r l; do report "$1:$l"; done <<<"$hits"
-  fi
+  local tmp lines n
+  tmp=$(mktemp); cat "$2" >"$tmp"   # <file> may be a pipe, and it is read more than once
+  grep -Iq . "$tmp" || { rm -f "$tmp"; return; }   # skip binary and empty files
+  lines=$(
+    masked "$tmp" | grep -E "$generic" | grep -vE "$allow"
+    deny_patterns >/dev/null && masked "$tmp" | grep -iF -f <(deny_patterns) | grep -v 'pii-allow'
+  )
+  for n in $(cut -d: -f1 <<<"$lines" | sort -un); do report "$1:$n:$(sed -n "${n}p" "$tmp")"; done
+  rm -f "$tmp"
 }
 
 case "${1:-}" in

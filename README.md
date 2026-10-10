@@ -132,5 +132,16 @@ file contents and commit messages, and requires a noreply commit email. (The com
 - **Personal, never committed:** create a gitignored `.pii-denylist` with one fixed string per
   line (real name, macOS username, computer name, personal email). Each machine needs its own.
 
-Write paths as `~/…` or `<project>/…`. For a deliberate false positive, put `pii-allow` on that
-line. Commits must use a `users.noreply.github.com` email.
+Write paths as `~/…` or `<project>/…`. Commits must use a `users.noreply.github.com` email.
+
+Denylist entries match anywhere in a line, ignoring case, so a short entry can catch public
+strings that contain it (a first name inside a GitHub handle, for example). To allow a string
+everywhere, add it to `.pii-denylist` with a leading `!`, like a `.gitignore` negation. The
+script blanks out allowed strings before checking, so anything else identifying on the same
+line is still caught. For a one-off false positive, put `pii-allow` on that line instead.
+
+```
+# .pii-denylist
+Firstname
+!firstname-handle
+```
