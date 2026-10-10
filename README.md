@@ -2,7 +2,7 @@
 
 Personal [Agent Skills](https://agentskills.io) packaged as **one plugin** that installs into
 Claude Code, OpenAI Codex CLI, and GitHub Copilot CLI. Edit a skill here, push, and each
-tool picks up the change.
+tool picks up the change (after the one-time auto-update setup below).
 
 ## Layout
 
@@ -55,17 +55,57 @@ Project installs go in the agent's folder in the current project (for example
 `.claude/skills/`) and are recorded in `skills-lock.json`. Add `-g` to install for your user
 instead. Use `-a '*'` to install into every agent the tool supports.
 
-## How updates flow
+## Keep it auto-updating (one time per machine)
 
-| Tool | Detects updates by | What you do |
-|------|--------------------|-------------|
-| Claude Code | git commit SHA | Nothing. It auto-updates at startup (or run `claude plugin marketplace update reidg44`). |
-| Codex | git commit SHA (`git ls-remote` at startup) | Nothing. Or run `codex plugin marketplace upgrade`. |
-| Copilot CLI | not documented, so assume `version` | Run `just bump` before pushing, then `copilot plugin update --all`. |
-| `npx skills` | only when you run update | Run `npx skills update` (add `-g` for user-wide installs). |
+Claude Code and Copilot CLI don't auto-update plugins from third-party marketplaces unless
+you turn it on. Codex does it by default. Do this once on each machine after installing.
 
-To have Copilot auto-update too, set `autoUpdate: true` on this marketplace's entry
-under `extraKnownMarketplaces` in Copilot's settings.
+**Claude Code**: auto-update is off by default for third-party marketplaces. Turn it on
+either way:
+- In a session, run `/plugin`, open the **Marketplaces** tab, select **reidg44**, and choose
+  **Enable auto-update**.
+- Or add this to `~/.claude/settings.json`:
+  ```json
+  {
+    "extraKnownMarketplaces": {
+      "reidg44": {
+        "source": { "source": "github", "repo": "reidg44/skills" },
+        "autoUpdate": true
+      }
+    }
+  }
+  ```
+
+About 10 minutes after your first message in a session, Claude Code checks for new commits
+(it tracks the git SHA, since `.claude-plugin/plugin.json` has no `version`). Run
+`/reload-plugins` to use the new version, or start a new session. If you set
+`DISABLE_AUTOUPDATER=1`, `DISABLE_UPDATES=1`, or `CLAUDE_CODE_DISABLE_NONESSENTIAL_TRAFFIC=1`,
+plugin auto-update is off too unless you also set `FORCE_AUTOUPDATE_PLUGINS=1`.
+To update by hand: `claude plugin update reidg44-skills@reidg44`.
+
+**GitHub Copilot CLI**: auto-update is off by default for third-party marketplaces. Add this
+to `~/.copilot/settings.json` (not `config.json`, which Copilot ignores for settings):
+```json
+{
+  "extraKnownMarketplaces": {
+    "reidg44": {
+      "source": { "source": "github", "repo": "reidg44/skills" },
+      "autoUpdate": true
+    }
+  }
+}
+```
+Plugins then update at the start of each interactive or `-p` session. Copilot ignores
+`autoUpdate` set in a repository's settings, and it skips auto-update in CI by default.
+It isn't documented whether Copilot detects updates by `version` or by commit, so
+run `just bump` before pushing. To update by hand: `copilot plugin update --all`.
+
+**OpenAI Codex CLI**: on by default. Each time Codex starts, it runs `git ls-remote` on every
+Git marketplace and reinstalls the plugin when the commit SHA changes. There's no setting to
+switch this off short of disabling plugins (`[features] plugins = false`). New skills show up
+in your next session. To update by hand: `codex plugin marketplace upgrade reidg44`.
+
+**`npx skills`**: never auto-updates. Run `npx skills update` (add `-g` for user-wide installs).
 
 ## Authoring workflow
 

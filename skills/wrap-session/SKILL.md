@@ -20,6 +20,6 @@ Ending a session usually means some combination of "clean up the debug files", "
 
 3. **Write STATUS.md:** what was completed, what remains with concrete next steps, blockers/decisions needed, and exact commands to resume.
 
-4. **Flag uncommitted work, do not commit.** List modified/untracked files worth committing. Commits may be signed and need the user present. If they said they're stepping away, explicitly note "uncommitted changes ready for you to commit" in STATUS.md instead of attempting it.
+4. **Flag uncommitted work, do not commit.** Commits may be signed and need the user present. Report uncommitted work in the chat summary, not in STATUS.md: git state changes as soon as the user commits, and the next session can run `git status`. Leave out files this wrap created or edited (STATUS.md, doc updates from step 2). Only the session's real work counts. If nothing else is uncommitted, say nothing about it. The one exception: if the user said they're stepping away and real work is uncommitted, add one line to STATUS.md saying it's ready to commit.
 
 5. **One-line summary** back to the user: docs touched, files cleaned, where STATUS.md points next.
