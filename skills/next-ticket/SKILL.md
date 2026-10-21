@@ -56,13 +56,19 @@ claimed it). Then check its blockers in both places:
 
 Pick the first candidate whose blockers are all **closed**.
 
-- No unblocked candidate: stop. Report each open candidate and what blocks it. Don't start a
-  blocked ticket.
-- Otherwise, say which issue you picked and why in one line, then keep going without waiting.
+No unblocked candidate: stop. Report each open candidate and what blocks it. Don't start a
+blocked ticket.
 
 Read the full ticket with `gh issue view <n> --comments`. Earlier comments may record partial
-progress from a previous session. Then read every doc and spec the ticket points to, plus the
-project's agent instructions (AGENTS.md/CLAUDE.md) and STATUS.md if there is one.
+progress from a previous session.
+
+**Before any other work, tell the user what you're starting on.** Give the issue number and
+title, why it was picked (for example, lowest unblocked), and two or three sentences in plain
+language on what the ticket does: the change it makes and what it touches. Mention any
+partial progress from earlier comments. Then keep going without waiting for a reply.
+
+Then read every doc and spec the ticket points to, plus the project's agent instructions
+(AGENTS.md/CLAUDE.md) and STATUS.md if there is one.
 
 ## 2. Build it
 
@@ -122,14 +128,17 @@ so re-read state right before every write.
 3. The **frontier** is the children that are open, unassigned, and unblocked. Check blockers
    the same way as step 1 (native dependencies first, then a `Blocked by:` line). Take the
    first frontier ticket in map order, not the lowest number.
-4. **Claim it** before any other work: `gh issue edit <n> --add-assignee @me`. Then say which
-   ticket you picked, by its title, in one line.
+4. **Claim it** before any other work: `gh issue edit <n> --add-assignee @me`.
 5. No frontier ticket: stop. Report each open child by title and what blocks or claims it.
    If no open children remain, the map may be done. Say so and point at its
    `## Not yet specified` section.
 
 Read the full ticket with `gh issue view <n> --comments`. Fetch related or closed tickets
 only when you need their detail.
+
+Before resolving it, tell the user what you're starting on: the ticket's title and type, and
+two or three plain sentences on the question it poses and what deciding it will unlock. Then
+keep going without waiting for a reply (grilling and prototype tickets need the user anyway).
 
 ### Resolve it by type
 
