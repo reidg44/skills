@@ -1,6 +1,6 @@
 ---
 name: simplify
-description: Review code for reuse, quality, and efficiency problems using three parallel reviewers, then apply the worthwhile fixes directly. By default it reviews the current diff; it can also sweep an entire codebase, a directory, or specific files when asked. Use when the user says "simplify", "simplify my changes", "simplify the whole codebase", "clean up this diff", "do a cleanup pass on this repo", or wants a cleanup pass before committing. For simplifying prose or documents, use plain-language instead.
+description: Review code for reuse, quality, and efficiency problems using three parallel reviewers, then apply the worthwhile fixes directly. By default it reviews the current diff; it can also sweep an entire codebase, a directory, or specific files when asked. Use when the user says "simplify", "simplify my changes", "simplify the whole codebase", "clean up this diff", "do a cleanup pass on this repo", or wants a cleanup pass before committing. For checking code against its spec or issue, use code-review. For simplifying prose or documents, use plain-language instead.
 ---
 
 # Simplify
@@ -36,7 +36,7 @@ Review exactly the files, directories, commit, or branch the user named. Treat a
 
 ### All modes
 - Skip generated files, lockfiles, vendored code, migrations, fixtures, and build output.
-- Read the project's agent instructions (`AGENTS.md`, `CLAUDE.md`, or similar) and any linter config, so reviewers judge against the project's own standards.
+- Read the project's agent instructions (`AGENTS.md`, `CLAUDE.md`, or similar), `CODING_STANDARDS.md` or `CONTRIBUTING.md` if present, and any linter config, so reviewers judge against the project's own standards.
 
 ## Phase 2: Three reviewers in parallel
 

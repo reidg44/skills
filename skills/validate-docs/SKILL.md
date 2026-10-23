@@ -15,6 +15,7 @@ Check that the repo's documentation tells the truth about the code as it is toda
    - Skill and prompt files (`SKILL.md`, prompt templates), since they describe how the project works.
    - Doc-like comments: module docstrings, `--help` text, and comments that describe usage.
    - Example and sample config: `.env.example`, `config.example.*`, `examples/**`.
+   - Agent workflow config: `docs/agents/*.md` (issue tracker commands, label names) and domain glossaries (`GLOSSARY.md`, `GLOSSARY-MAP.md`).
 2. **Skip** vendored code, `node_modules`, `.venv`, generated API docs, build output, and lockfiles. Treat `CHANGELOG` entries and ADRs/decision records as historical. They describe the past, so don't "fix" them to match today's code. Only check that the newest entry isn't missing obvious recent changes. Don't extend this to other docs: a README, guide, or diagram that is wrong is not "historical", it gets fixed or removed.
 3. **Learn the ground truth sources.** Note where the real answers live: `justfile`/`Makefile`/`package.json` scripts, `pyproject.toml`/`Cargo.toml`/`go.mod`, CI workflows, entry points, config loaders, env var reads, and the directory tree.
 4. **Scope.** Default to the whole repo. If the user names files or a directory, check only those (but still use the whole repo as ground truth). If they say "since the last release" or name a branch, prioritize docs that mention files changed in `git diff <ref>...HEAD`.
@@ -40,6 +41,7 @@ Go through each doc and pull out every checkable claim. Verify each one against 
 | **Behavior claims** ("retries 3 times", "caches for 1 hour", "runs on commit") | Read the code that implements it and confirm the details. |
 | **Links** | Relative links and `#anchors` point to files and headings that exist. Check external links only if the user asks or the tool can do it cheaply. Report dead ones, and don't guess replacements. |
 | **Install and setup steps** | Walk through them in order against the repo. Every step needed is listed, nothing listed is obsolete, and the order works. |
+| **Glossary terms** (`GLOSSARY.md`) | Each term still names something real in the code, under that name. Flag terms the code has renamed or dropped, and code that uses a different word for a glossary term. |
 | **Cross-doc consistency** | The same fact (a command, a version, a path) is stated the same way everywhere. Flag contradictions between docs. |
 | **Staleness markers** | "TODO", "coming soon", "not yet implemented", "deprecated", and dated statements. Check whether they are still true. |
 

@@ -1,6 +1,6 @@
 ---
 name: prek-setup
-description: Set up or migrate a repo's git hooks to a standard setup - prek (NOT pre-commit) with betterleaks (NOT gitleaks) for secret scanning. Use when adding pre-commit hooks to a repo, migrating from pre-commit/gitleaks, or when the user mentions prek, betterleaks, or commit hooks.
+description: Set up or migrate a repo's git hooks to a standard setup - prek (NOT pre-commit) with betterleaks (NOT gitleaks) for secret scanning. Use this instead of Husky, lint-staged, or `pre-commit install` when adding pre-commit hooks to a repo, migrating from pre-commit/gitleaks, or when the user mentions prek, betterleaks, or commit hooks.
 ---
 
 # prek + betterleaks setup

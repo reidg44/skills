@@ -37,5 +37,6 @@ Set up every new repo the same way, in one pass, without asking about each piece
 
 ## Finish
 
+- If the `mattpocock-skills` plugin is installed and the repo has a GitHub or GitLab remote, suggest running `/setup-matt-pocock-skills` to configure the issue tracker and labels. Tell it to put its `## Agent skills` block in `AGENTS.md`, not `CLAUDE.md`, so `CLAUDE.md` stays a bare `@AGENTS.md` import.
 - If running in Claude Code, suggest `/claude-automation-recommender` for project-specific automations.
 - Make the first commit only when the user asks. Commits may be signed and need the user present.
