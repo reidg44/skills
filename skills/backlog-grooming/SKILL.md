@@ -108,8 +108,12 @@ unchecked. Then present one plan, grouped by action:
 - **Flag:** untriaged tickets to send to `triage`, and open questions for the user.
 - **No change:** a one-line count, so the user knows the rest were checked.
 
-Ask the user to approve, edit, or drop parts of the plan. If your tool has a question tool
-for discrete choices, use it. Wait for an answer.
+Then ask the user to approve, edit, or drop parts of the plan, along with the open questions
+from **Flag**. Ask with the question tool: `AskUserQuestion` in Claude Code, or your tool's
+equivalent, falling back to plain text only when there is none. Put the recommended option
+first, marked `(Recommended)`. The tool takes up to 4 questions per call, so for a large
+plan ask one question per action group (for example "Close these 5 tickets?"), in several
+calls if needed. Wait for the answers.
 
 ## 4. Apply what was approved
 

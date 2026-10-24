@@ -42,6 +42,13 @@ line, and comments append under `## Comments`.
   files under `.scratch/`). If only one kind exists, use it. If both exist, or there is more
   than one open map, ask the user which to work.
 
+**Asking the user.** Put every question to the user through the **question tool**:
+`AskUserQuestion` in Claude Code, or your tool's equivalent, falling back to plain text only
+when there is none. Put your recommended option first, marked `(Recommended)`. This covers
+grilling and prototype tickets too, and overrides the `grilling` skill's text format for
+rounds. The tool takes up to 4 questions per call, so split a bigger round into several
+calls.
+
 ## 1. Pick the ticket
 
 If the user named a ticket, use that one and skip the blocker check. Otherwise list the

@@ -4,6 +4,52 @@ Personal [Agent Skills](https://agentskills.io) packaged as **one plugin** that 
 Claude Code, OpenAI Codex CLI, and GitHub Copilot CLI. Edit a skill here, push, and each
 tool picks up the change (after the one-time auto-update setup below).
 
+## Skills
+
+Each skill fires on its own when you ask for what it does, or you can call it by name (for
+example `/reidg44-skills:new-ticket` in Claude Code).
+
+### Ticket workflow
+
+These skills share the issue tracker as their only state. They work with GitHub issues or
+local markdown tickets, and work best alongside the
+[`mattpocock-skills`](https://github.com/mattpocock/skills) plugin, whose `grilling`,
+`triage`, `to-tickets`, `tdd`, and `wayfinder` skills they call where those are installed.
+
+A ticket's usual path is `new-ticket` → `next-ticket`. Tickets that come from somewhere else
+go through `triage` first, which moves them to `ready-for-agent`. Run `backlog-grooming`
+when the code has moved on and the open tickets may have gone stale.
+
+| Skill | What it does |
+| --- | --- |
+| `new-ticket` | Turns a request into a ticket. Sizes it first (quick, needs grilling, or too big for one session), checks the size with you, grills only when needed, and creates nothing until you approve the draft. Approved tickets are labelled `ready-for-agent`, so `next-ticket` can pick them up right away. |
+| `next-ticket` | Picks the lowest-numbered unblocked `ready-for-agent` ticket and takes it end to end: build test-first, verify like a user, wrap up, commit, close. Also works the next decision on a wayfinder map. |
+| `backlog-grooming` | Checks every open ticket against today's code (still needed? stale? split right? blocked by the right things?), proposes one grouped plan, and applies it after you approve. |
+
+### Sessions
+
+| Skill | What it does |
+| --- | --- |
+| `reorient` | Starts a session on a project you've been away from. Rebuilds where things stand from STATUS.md, the tracker, and git, and proposes one next step. Read-only. |
+| `wrap-session` | Ends a session. Cleans up scratch files, records what was learned in the right place, writes STATUS.md, and flags uncommitted work. |
+
+### Project setup and upkeep
+
+| Skill | What it does |
+| --- | --- |
+| `bootstrap-project` | Sets up a new repo the standard way: git, uv, prek + betterleaks hooks, justfile, a `.gitignore` that excludes secrets, README, and AGENTS.md. |
+| `prek-setup` | Adds or migrates git hooks to prek with betterleaks for secret scanning. |
+| `update-deps` | Updates every dependency in every ecosystem the repo uses, plus GitHub Actions and Dependabot alerts. Each major update is kept only if tests, lint, and typecheck pass. |
+| `validate-docs` | Checks every doc in the repo against the real code and config, and fixes what's wrong or stale. |
+| `simplify` | Reviews code for reuse, quality, and efficiency with three parallel reviewers, then applies the worthwhile fixes. Works on the current diff or a whole codebase. |
+
+### Writing and media
+
+| Skill | What it does |
+| --- | --- |
+| `plain-language` | Writes, rewrites, or reviews text using the US federal plain language guidelines. |
+| `product-launch-video` | Makes a ~30 second launch video of the repo's web app. Proposes the concept and script for approval, then films the live app and scores it. |
+
 ## Layout
 
 ```

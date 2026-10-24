@@ -91,7 +91,7 @@ Write `PROPOSAL.md` in the scratch dir, then present it in chat (concise — the
 6. **Data** — which demo/seed mode is filmed, and confirmation that no real data appears.
 7. **Storyboard** (optional but persuasive) — attach the capture contact sheet or 3–6 key screenshots so the user can picture the shots.
 
-Then ask for a decision (use the AskUserQuestion tool when available) with options like **Approve**, **Approve with changes** (they type them), **Rework the concept**. Rules:
+Then ask for a decision with the question tool (`AskUserQuestion` in Claude Code, or your tool's equivalent; plain text only if there is none) with options like **Approve**, **Approve with changes** (they type them), **Rework the concept**. Rules:
 - Do nothing in Phases 5–9 until the answer is an explicit approval.
 - On changes: revise `PROPOSAL.md`, re-present only what changed, ask again.
 - On "rework": go back to Phase 3 with their feedback; present a new concept (offering 2 contrasting directions is fine).

@@ -33,7 +33,7 @@ Set up every new repo the same way, in one pass, without asking about each piece
 
 7. **Secrets pattern:** create `.env.example` with placeholder names. Tell the user to put real values in `.env` themselves. Never ask them to paste credentials into the chat.
 
-8. **Optional (ask only if ambiguous): devcontainer.** If the user wants one: use the current official Claude Code devcontainer docs (https://code.claude.com/docs/en/devcontainer), remove the network firewall, include the `gh` CLI, and forward dev-server ports so localhost inside the container is reachable from the laptop.
+8. **Optional (ask only if ambiguous): devcontainer.** Ask with the question tool (`AskUserQuestion` in Claude Code, or your tool's equivalent; plain text only if there is none). If the user wants one: use the current official Claude Code devcontainer docs (https://code.claude.com/docs/en/devcontainer), remove the network firewall, include the `gh` CLI, and forward dev-server ports so localhost inside the container is reachable from the laptop.
 
 ## Finish
 

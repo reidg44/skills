@@ -23,6 +23,6 @@ The user is coming back to a project after days or weeks. Within one response th
    - What's done (working, verified).
    - What's in flight (uncommitted changes, half-finished features, claimed tickets, open bugs).
    - **Recommended next step:** one concrete action, not a menu. If it's the next unblocked ticket, name it and suggest `next-ticket`.
-   - Questions only where you're genuinely blocked on the user's input. Ask after reviewing, not instead of reviewing.
+   - Questions only where you're genuinely blocked on the user's input. Ask after reviewing, not instead of reviewing. Ask questions with discrete choices through the question tool (`AskUserQuestion` in Claude Code, or your tool's equivalent; plain text only if there is none), with the recommended option first.
 
 4. **Wait for direction before changing anything.** Reorientation is read-only.

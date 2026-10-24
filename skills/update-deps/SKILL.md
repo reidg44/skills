@@ -14,6 +14,8 @@ left half-done.
 
 1. **Start clean.** Run `git status`. If there are uncommitted changes, ask whether to
    continue on top of them, since reverting a failed update must not lose the user's work.
+   Ask with the question tool (`AskUserQuestion` in Claude Code, or your tool's equivalent;
+   plain text only if there is none).
 2. **Find every language the repo uses**, not just the ones you expect. List the file types
    (`git ls-files | sed -n 's/.*\.//p' | sort | uniq -c | sort -rn`) and find every manifest
    and lockfile, including in subdirectories, since monorepos and workspaces keep several.

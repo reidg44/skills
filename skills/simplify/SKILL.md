@@ -21,7 +21,7 @@ State the mode and scope in one line before starting, for example "Codebase mode
 
 ### Diff mode
 1. **Inside a git repo:** run `git diff HEAD` to capture staged and unstaged changes. Also run `git status --porcelain` and include untracked files that are new source code, since `git diff` doesn't show them.
-2. If there are no uncommitted changes, ask whether to review the last commit (`git show HEAD`), the branch (`git diff main...HEAD`), or the whole codebase. Don't guess.
+2. If there are no uncommitted changes, ask whether to review the last commit (`git show HEAD`), the branch (`git diff main...HEAD`), or the whole codebase. Ask with the question tool (`AskUserQuestion` in Claude Code, or your tool's equivalent; plain text only if there is none). Don't guess.
 3. **No git repo:** review the most recently modified source files, for example `find . -type f -mmin -60 -not -path '*/node_modules/*' -not -path '*/.venv/*' -not -path '*/.git/*'`. Widen the window if nothing turns up, and tell the user which files you picked.
 
 Review only what changed, plus the minimum surrounding code needed to understand it. If the diff is empty, say so and stop.
