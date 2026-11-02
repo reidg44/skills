@@ -32,6 +32,7 @@ when the code has moved on and the open tickets may have gone stale.
 | --- | --- |
 | `reorient` | Starts a session on a project you've been away from. Rebuilds where things stand from STATUS.md, the tracker, and git, and proposes one next step. Read-only. |
 | `wrap-session` | Ends a session. Cleans up scratch files, records what was learned in the right place, writes STATUS.md, and flags uncommitted work. |
+| `kid-mode` | Turns a session kid-friendly for a 9 to 11 year old building their own app: plain-word replies and recaps, one simple question at a time, new ideas typed mid-task get queued instead of derailing the work. Code, docs, commits, and anything sent to another agent stay at full strength. Writes a marker into the project's AGENTS.md or CLAUDE.md so it stays on. |
 
 ### Project setup and upkeep
 
