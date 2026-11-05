@@ -18,11 +18,14 @@ The user is coming back to a project after days or weeks. Within one response th
 
 2. **Check the record against reality.** STATUS.md may be stale. Do the commands it mentions still exist? Is the branch it names still checked out? Are the tickets it points at still open? If the repo contradicts the status doc, say so explicitly. Don't silently trust either.
 
-3. **Report in this shape:**
+3. **Report in this shape.** Lead with the action and skip preamble.
+   - **Recommended next step, first line:** one concrete action, not a menu, with a time estimate in real units ("about 20 minutes", "one session"). Then a starter the user can do in under two minutes, usually one exact command. If it's the next unblocked ticket, name it and suggest `next-ticket`.
    - One sentence: what this project is and its end goal.
-   - What's done (working, verified).
+   - What's done (working, verified), stated as what now works.
    - What's in flight (uncommitted changes, half-finished features, claimed tickets, open bugs).
-   - **Recommended next step:** one concrete action, not a menu. If it's the next unblocked ticket, name it and suggest `next-ticket`.
+   - Show at most 5 items per list, most relevant first, and say how many more there are. Mention a second problem only after the main report, as its own line.
    - Questions only where you're genuinely blocked on the user's input. Ask after reviewing, not instead of reviewing. Ask questions with discrete choices through the question tool (`AskUserQuestion` in Claude Code, or your tool's equivalent; plain text only if there is none), with the recommended option first.
 
 4. **Wait for direction before changing anything.** Reorientation is read-only.
+
+If the `i-have-adhd` skill is active, its rules take precedence over this report shape.

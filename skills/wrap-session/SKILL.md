@@ -23,10 +23,13 @@ If the user says what the next session will focus on, tailor STATUS.md to that.
    If running in Claude Code and the change is substantial, `/claude-md-management:revise-claude-md` handles the agent instructions file well. Otherwise edit directly.
 
 3. **Write STATUS.md:** what was completed, what remains with concrete next steps, blockers/decisions needed, and exact commands to resume.
+   - **Resume here, at the top.** Open with a `## Resume here` section: the one next action, the exact first command for it, and where it sits in the plan ("step 3 of 5") if a plan is in flight. A reader who stops after this section should still know how to start.
    - **Link, don't restate.** Point at issues, commits, specs, plans, and ADRs by URL or path instead of copying them in. If the session worked a tracked issue, put the progress on the issue as a comment and keep STATUS.md to a pointer to it. The tracker holds that state.
    - **Suggested skills:** name the skills the next session should start with (for example `next-ticket`, `tdd`, `diagnosing-bugs`).
    - **No secrets.** Leave out API keys, passwords, tokens, and personal data. Refer to `.env` variable names instead.
 
 4. **Flag uncommitted work, do not commit.** Commits may be signed and need the user present. Report uncommitted work in the chat summary, not in STATUS.md: git state changes as soon as the user commits, and the next session can run `git status`. Leave out files this wrap created or edited (STATUS.md, doc updates from step 2). Only the session's real work counts. If nothing else is uncommitted, say nothing about it. The one exception: if the user said they're stepping away and real work is uncommitted, add one line to STATUS.md saying it's ready to commit. When another skill runs this wrap as part of its own flow and commits afterwards (for example `next-ticket`), skip this step and leave committing to that skill.
 
-5. **One-line summary** back to the user: docs touched, checks proposed or added, files cleaned, where STATUS.md points next.
+5. **One-line summary** back to the user. Start with what now works, if the session shipped anything. Then list docs touched, checks proposed or added, and files cleaned, and end with where STATUS.md points next. No closing pleasantries.
+
+If the `i-have-adhd` skill is active, its rules take precedence over this summary shape.

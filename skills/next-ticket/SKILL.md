@@ -82,6 +82,13 @@ title, why it was picked (for example, lowest unblocked), and two or three sente
 language on what the ticket does: the change it makes and what it touches. Mention any
 partial progress from earlier comments. Then keep going without waiting for a reply.
 
+**Keep the user oriented while you work.** Each progress line says where you are in the
+steps of this skill and what just happened, for example "Step 2 of 5 (build): 3 of 4
+acceptance criteria have passing tests." If your tool has a task or todo list, keep one item
+per step there, with one in progress at a time. Report a failure as cause and fix ("Test
+fails at `auth.spec.ts:42`: expected 200, got 401. Cause: missing auth header. Fixing."),
+with no alarm words.
+
 Then read every doc and spec the ticket points to, plus the project's agent instructions
 (AGENTS.md/CLAUDE.md), STATUS.md, and `GLOSSARY.md` and ADRs in the area, where they exist.
 Note the current commit (`git rev-parse HEAD`) as the ticket's **starting point** for review.
@@ -133,7 +140,8 @@ the rest. If the wrap-up adds a check, run it before committing.
 
 ## 5. Report
 
-Give one short summary:
+Give one short summary. No preamble and no closing pleasantries. Open with what now works
+and how to try it ("Magic-link login works: run `just dev` and open `/login`"), then:
 
 - which ticket you worked
 - what changed
@@ -144,6 +152,9 @@ Give one short summary:
   `wrap-session` ran and what it did: files cleaned, docs or checks touched, and where
   STATUS.md points. For example: "Wrap-up: ran wrap-session. Removed 2 scratch scripts,
   added a gotcha to AGENTS.md, STATUS.md points at #42." If it didn't run, say so and why.
+
+If the `i-have-adhd` skill is active, its rules take precedence over this progress and report
+shape.
 
 ## Wayfinder maps
 
