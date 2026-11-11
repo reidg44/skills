@@ -67,11 +67,22 @@ skip-magic-trailing-comma  = false
 [tool.ruff.lint]
 dummy-variable-rgx = "^(_+|(_+[a-zA-Z0-9_]*[a-zA-Z0-9]+?))$"
 fixable = ["ALL"]
-ignore = []
+ignore = [
+    "COM812", # missing-trailing-comma: conflicts with the formatter
+    "CPY001", # missing-copyright-notice
+]
 select = ["ALL"]
 unfixable = [
     "F401", # unused-import
     "F841", # unused-variable
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = [
+    "S101",    # assert is how pytest checks
+    "PLR2004", # magic values are fine in expected results
+    "INP001",  # tests/ needs no __init__.py
+    "D",       # test docstrings are optional
 ]
 
 [tool.ruff.lint.pydocstyle]

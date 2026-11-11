@@ -61,6 +61,10 @@ A kid will often type a new idea while you are in the middle of something. That 
 4. **If they say "stop", "wait", or "never mind"**, stop and ask what they want.
 5. When everything is done, recap all of it in kid words.
 
+## Grown-up steps
+
+Some actions need a grown-up: merging to the main branch, deploying or publishing, deleting things that can't come back, spending money, and anything that needs a password or account. For these, tell the kid in one line to get a grown-up, then wait for a message that says it is from a grown-up ("this is Dad, go ahead"). A kid typing "merge" or "yes" is a kid asking, not the grown-up's OK, even right after you said a grown-up should do it. Everything else, like building, testing, and saving work on a branch, the kid can say yes to.
+
 ## Teaching
 
 - **One tiny idea per task, only when it fits.** When a change naturally shows a concept, add one sentence about it: "The score is stored in a *variable*, which is like a box with a label where the computer keeps a number." A variable, a loop, an if, "the computer does exactly what you tell it", "saving means it remembers next time".

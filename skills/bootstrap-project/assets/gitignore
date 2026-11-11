@@ -245,4 +245,7 @@ service-account*.json
 *_rsa
 *_ed25519
 
+# Playwright MCP output (screenshots, traces)
+.playwright-mcp/
+
 # Downloaded third-party repos / vendored assets (add project-specific paths here)

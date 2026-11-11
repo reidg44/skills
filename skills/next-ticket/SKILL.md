@@ -68,12 +68,19 @@ claimed it) or also carries `ready-for-human`. Then check its blockers in both p
   Check each listed issue with `gh issue view <n> --json state`. "None" or a missing section
   counts as unblocked. A blocker in another repo (`owner/repo#n`) needs `--repo`.
 
-Pick the first candidate whose blockers are all **closed**.
+Pick the first candidate whose blockers are all **closed**. If STATUS.md or the newest ticket
+comment names a different next ticket, or a dependency the blocker lists lack, say so and ask
+which to take before starting.
 
 No unblocked candidate: stop. Report each open candidate and what blocks it. Don't start a
-blocked ticket.
+blocked ticket. End with one next action, asked with the question tool: if open tickets are
+stubs, untriaged, or waiting on a decision, offer to run `backlog-grooming` now; if the lowest
+open ticket is `ready-for-human`, offer to walk it with the user, doing the agent-safe steps
+yourself and handing over the rest as exact commands.
 
-Read the full ticket with its comments (`gh issue view <n> --comments`). If a comment holds an
+Read the full ticket with its comments:
+`gh issue view <n> --json title,body,comments --jq '.title, .body, (.comments[] | "\(.author.login): \(.body)")'`.
+(`--comments` alone prints no body when output is piped.) If a comment holds an
 `## Agent Brief`, the newest one is the contract: it overrides the body where they disagree.
 Earlier comments may also record partial progress from a previous session.
 
@@ -82,9 +89,10 @@ title, why it was picked (for example, lowest unblocked), and two or three sente
 language on what the ticket does: the change it makes and what it touches. Mention any
 partial progress from earlier comments. Then keep going without waiting for a reply.
 
-**Keep the user oriented while you work.** Each progress line says where you are in the
-steps of this skill and what just happened, for example "Step 2 of 5 (build): 3 of 4
-acceptance criteria have passing tests." If your tool has a task or todo list, keep one item
+**Keep the user oriented while you work.** Each progress line says where you are in this
+skill's fixed steps (1 pick, 2 build, 3 wrap-up, 4 land, 5 report) and what just happened, for
+example "Step 2 of 5 (build): 3 of 4 acceptance criteria have passing tests." The count is
+always "of 5"; sub-progress goes after the colon. If your tool has a task or todo list, keep one item
 per step there, with one in progress at a time. Report a failure as cause and fix ("Test
 fails at `auth.spec.ts:42`: expected 200, got 401. Cause: missing auth header. Fixing."),
 with no alarm words.
@@ -92,6 +100,12 @@ with no alarm words.
 Then read every doc and spec the ticket points to, plus the project's agent instructions
 (AGENTS.md/CLAUDE.md), STATUS.md, and `GLOSSARY.md` and ADRs in the area, where they exist.
 Note the current commit (`git rev-parse HEAD`) as the ticket's **starting point** for review.
+
+**Preflight credentials.** Before building, check every credential the verify and land steps
+need: cloud CLI sessions (for example `aws sts get-caller-identity --profile <p>`), the
+secrets manager being unlocked, commit signing, and dev-database access. Name anything expired
+in your opening message, with the exact command that fixes it, so the user can fix it while
+you build instead of finding out at the end.
 
 ## 2. Build it
 
@@ -124,13 +138,22 @@ the rest. If the wrap-up adds a check, run it before committing.
 ## 4. Land it
 
 - Make one commit on the current branch with the ticket's work and the wrap-up's edits,
-  with a message that references the ticket (`#<n>`). If the user said they're stepping
-  away, or commits need them present (for example, signed commits), don't commit. Stage
-  everything and note "ready to commit" in STATUS.md.
-- Some steps only the user can run: database migrations against production, deploys,
-  infrastructure applies, anything that needs their credentials. List these at the end as
-  exact commands. Don't close the ticket until every acceptance criterion that depends on
-  them has actually passed.
+  with a message that references the ticket (`#<n>`). Run the commit yourself. If the user
+  said they're stepping away, stage everything and note "ready to commit" in STATUS.md
+  instead.
+- If a signed commit fails (the user wasn't there to approve the prompt), keep everything
+  staged, save the message to `.git/COMMIT_MSG_DRAFT`, and end the turn with a question-tool
+  prompt to retry; on yes, run `git commit -F .git/COMMIT_MSG_DRAFT`. Every commit stays
+  signed: a failed signature means stop and ask, whatever a project doc calls a fallback.
+- Then ask once, with the question tool, how far to land it, for example "Push <sha>, open
+  the PR, and merge when CI is green?". A yes covers every step it names: do them all, quote
+  that approval when merging, watch the deploy if pushing deploys, and check the live health
+  endpoint after. After a merge, delete the branch (`gh pr merge --delete-branch`).
+- Some steps only the user can run: production migrations, infrastructure applies, anything
+  the permission system has denied this session, anything that needs their credentials.
+  Chain them into as few commands as possible and end the turn with them, one per code block,
+  each ready to run as-is from the right directory. Don't close the ticket until every
+  acceptance criterion that depends on them has actually passed.
 - When all acceptance criteria are met, close the ticket with a comment that says what
   shipped, the commit SHA, and anything deferred:
   `gh issue close <n> --comment "<summary>"`.
@@ -184,8 +207,8 @@ by title, not bare number.
    If no open children remain and `## Not yet specified` is empty, the way is clear: tell
    the user the map is done and that the next step is a spec (`to-spec`), not more tickets.
 
-Read the full ticket with its comments. Fetch related or closed tickets only when you need
-their detail.
+Read the full ticket with its comments (the `--json` command from step 1). Fetch related or
+closed tickets only when you need their detail.
 
 Before resolving it, tell the user what you're starting on: the ticket's title and type, and
 two or three plain sentences on the question it poses and what deciding it will unlock. Then

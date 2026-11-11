@@ -17,7 +17,7 @@ Set up every new repo the same way, in one pass, without asking about each piece
    uv venv  # .venv in project root
    ```
    Then replace the generated `pyproject.toml` with **`assets/pyproject.toml`** (in this skill dir): fill in `name`, `description`, and `dependencies`; keep the pytest + ruff config block verbatim. It's **application-style** (no `[build-system]`), which is the default. Only add a build backend + `[tool.hatch...]`/`[project.scripts]` if the user actually wants an installable package.
-   Type hints, PEP 8, docstrings. Linter/formatter is **ruff** with `select = ["ALL"]` and the Google docstring convention, already configured in the template.
+   Type hints, PEP 8, docstrings. Linter/formatter is **ruff** with `select = ["ALL"]` and the Google docstring convention, already configured in the template, including the ignores for formatter conflicts and test files.
    ⚠️ Do NOT use `httpx`. Prefer `requests`/`aiohttp` (or stdlib) as appropriate.
    ⚠️ Scaffold config and tooling only. Do NOT write application `.py` modules unless asked.
 
@@ -25,7 +25,7 @@ Set up every new repo the same way, in one pass, without asking about each piece
 
 4. **.gitignore:** copy **`assets/gitignore`** (in this skill dir) to the project root as `.gitignore`. It's the toptal/VSCode generator output (visualstudiocode + macos + dotenv + python) and already covers `.env`, `.venv`, caches, build artifacts, etc. Its bottom "Custom rules" section adds the secret/credential excludes the generator omits (`*.pem`, `*.key`, certs, `credentials.json`, SSH keys). Keep those, and verify the secret block survived the copy. Add any project-specific downloaded third-party repos/assets there too.
 
-5. **justfile** at the project root. Use `just` for common actions. Seed it with whatever applies: `build`, `test`, `run`, `lint`. Keep recipes short.
+5. **justfile** at the project root. Use `just` for common actions. Seed it with whatever applies: `build`, `test`, `run`, `lint`. Keep recipes short. If the project runs a dev server, give it its own port (not a framework default like 3000, 5173, or 8000), so one project's service worker or cache can't take over another's on the same localhost port. Record the port in AGENTS.md.
 
 6. **README.md + AGENTS.md:**
    - README: what this is, how to set up and run. Assume a fresh machine, so setup instructions must actually work from a clean clone.
@@ -39,4 +39,4 @@ Set up every new repo the same way, in one pass, without asking about each piece
 
 - If the `mattpocock-skills` plugin is installed and the repo has a GitHub or GitLab remote, suggest running `/setup-matt-pocock-skills` to configure the issue tracker and labels. Tell it to put its `## Agent skills` block in `AGENTS.md`, not `CLAUDE.md`, so `CLAUDE.md` stays a bare `@AGENTS.md` import.
 - If running in Claude Code, suggest `/claude-automation-recommender` for project-specific automations.
-- Make the first commit only when the user asks. Commits may be signed and need the user present.
+- Make the first commit only when the user asks.
