@@ -16,13 +16,15 @@ local markdown tickets, and work best alongside the
 [`mattpocock-skills`](https://github.com/mattpocock/skills) plugin, whose `grilling`,
 `triage`, `to-tickets`, `tdd`, and `wayfinder` skills they call where those are installed.
 
-A ticket's usual path is `new-ticket` → `next-ticket`. Tickets that come from somewhere else
-go through `triage` first, which moves them to `ready-for-agent`. Run `backlog-grooming`
+A ticket's usual path is `new-ticket` → `next-ticket`. Tickets that come from somewhere else,
+including ideas captured with `new-idea`, go through `triage` first, which moves them to
+`ready-for-agent`. Run `backlog-grooming`
 when the code has moved on and the open tickets may have gone stale.
 
 | Skill | What it does |
 | --- | --- |
 | `new-ticket` | Turns a request into a ticket. Sizes it first (quick, needs grilling, or too big for one session), checks the size with you, grills only when needed, and creates nothing until you approve the draft. Approved tickets are labelled `ready-for-agent`, so `next-ticket` can pick them up right away. |
+| `new-idea` | Captures a passing idea as a `needs-triage` ticket in seconds, mid-session, without interrupting the work in progress. Asks nothing, shows no draft, and doesn't start on the idea. |
 | `next-ticket` | Picks the lowest-numbered unblocked `ready-for-agent` ticket and takes it end to end: build test-first, verify like a user, wrap up, commit, close. Also works the next decision on a wayfinder map. |
 | `backlog-grooming` | Checks every open ticket against today's code (still needed? stale? split right? blocked by the right things?), proposes one grouped plan, and applies it after you approve. |
 
