@@ -1,6 +1,6 @@
 ---
 name: new-ticket
-description: Turn a request into a new ticket on the issue tracker - size it first (quick ticket, needs grilling, or too big for one session), confirm the size with the user, grill only when the size calls for it, then show the draft and create it only after the user approves. Works with GitHub issues or local markdown tickets. Use when the user says "new ticket", "file an issue", "open a ticket for", "make a ticket", "add this to the backlog", or describes work they want tracked.
+description: Turn a request into a new ticket on the issue tracker - size it first (quick ticket, needs grilling, or too big for one session), confirm the size with the user, grill only when the size calls for it, then show the draft and create it only after the user approves. Works with GitHub issues or local markdown tickets. Use when the user says "new ticket", "file an issue", "open a ticket for", "make a ticket", "add this to the backlog", or describes work they want tracked. Also shapes an existing needs-triage ticket in place when the user names one ("shape #12", "triage #12", "make #12 ready").
 ---
 
 # New ticket
@@ -53,6 +53,12 @@ Facts are your job, never the user's. Before sizing:
 - Search open and recently closed tickets for a duplicate or a close neighbor
   (`gh issue list --state all --search "<keywords>" --limit 20`). If one exists, tell the
   user and offer to comment on or update it instead of creating a new one.
+
+**Shaping an existing ticket.** If the request names an open ticket that hasn't been shaped
+(labelled `needs-triage`, or with no state label), for example one captured by `new-idea`,
+shape that ticket in place. Don't create a second one. Read its body and comments as the
+request, then follow steps 3-5 as usual. In step 5 show the draft as the ticket's new title
+and body. In step 6, edit instead of create.
 
 ## 3. Size it
 
@@ -152,10 +158,18 @@ approves or cancels. **Create nothing until they approve.**
   Otherwise fill in each ticket's `## Blocked by` section.
 - **Local tracker:** write one file per ticket, numbered after the highest existing ticket in
   that feature folder, with `Status: ready-for-agent`.
+- **Shaping an existing ticket:** re-read it first, since another session may have changed
+  it. Replace the title and body, remove the untriaged label, and add the ready and category
+  labels:
+  `gh issue edit <n> --title "<title>" --body-file <file> --remove-label needs-triage --add-label ready-for-agent --add-label <category>`.
+  Add a short comment saying the ticket was shaped and what was decided. Keep the original
+  idea's wording in the comment if the new body drops it. For a local tracker, rewrite the
+  file and its `Status:` line. If shaping split it into several tickets, keep the original
+  as the first slice or the parent, and create the rest as above.
 
 ## 7. Report
 
-Give the link (or path) and title of each ticket created, its labels and blockers, and the
+Give the link (or path) and title of each ticket created or shaped, its labels and blockers, and the
 next step: run `next-ticket` to build it.
 
 ## Ticket template

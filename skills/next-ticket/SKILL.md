@@ -39,8 +39,10 @@ line, and comments append under `## Comments`.
 - The user named any other ticket: use steps 1-5.
 - Otherwise check both: ready build tickets (step 1) and open maps
   (`gh issue list --state open --label wayfinder:map --json number,title`, or `map.md`
-  files under `.scratch/`). If only one kind exists, use it. If both exist, or there is more
-  than one open map, ask the user which to work.
+  files under `.scratch/`). If only one kind exists, use it. If both exist, take the build
+  ticket, and name the map's next frontier ticket in your opening message so the user can
+  redirect. Ask which to work only when the user mentioned the map, or when there is no
+  unblocked build ticket and more than one open map.
 
 **Asking the user.** Put every question to the user through the **question tool**:
 `AskUserQuestion` in Claude Code, or your tool's equivalent, falling back to plain text only
@@ -68,9 +70,14 @@ claimed it) or also carries `ready-for-human`. Then check its blockers in both p
   Check each listed issue with `gh issue view <n> --json state`. "None" or a missing section
   counts as unblocked. A blocker in another repo (`owner/repo#n`) needs `--repo`.
 
-Pick the first candidate whose blockers are all **closed**. If STATUS.md or the newest ticket
-comment names a different next ticket, or a dependency the blocker lists lack, say so and ask
-which to take before starting.
+Pick the first candidate whose blockers are all **closed**. STATUS.md or the newest ticket
+comment may name a different next ticket. Decide it yourself where you can:
+
+- It names a ticket in this repo that is ready and unblocked: take that one, and say why in
+  your opening message.
+- It names a ticket in another repo: keep this repo's pick and mention the pointer.
+- It names a ticket that is blocked or not ready, or a dependency the blocker lists lack:
+  say so and ask which to take before starting.
 
 No unblocked candidate: stop. Report each open candidate and what blocks it. Don't start a
 blocked ticket. End with one next action, asked with the question tool: if open tickets are
@@ -135,6 +142,12 @@ session debris, record what was learned in the right place, and update STATUS.md
 "flag uncommitted work" step and its closing summary: step 4 commits, and the report covers
 the rest. If the wrap-up adds a check, run it before committing.
 
+**Write STATUS.md as it will read once the ticket has landed.** It goes into the ticket's
+commit, so anything it says about landing is out of date minutes later. Point it at the next
+ticket. Leave out commit SHAs, PR numbers, and whether the work is pushed, merged, deployed,
+or migrated, and leave out checks still waiting on the user. That state belongs in the ticket
+comment. Done right, STATUS.md needs no second edit after step 4.
+
 ## 4. Land it
 
 - Make one commit on the current branch with the ticket's work and the wrap-up's edits,
@@ -149,6 +162,14 @@ the rest. If the wrap-up adds a check, run it before committing.
   the PR, and merge when CI is green?". A yes covers every step it names: do them all, quote
   that approval when merging, watch the deploy if pushing deploys, and check the live health
   endpoint after. After a merge, delete the branch (`gh pr merge --delete-branch`).
+- **"Merge when CI is green" means you wait and you merge.** Watch the checks yourself with
+  one background command (`gh pr checks <n> --watch`), then merge in the same turn when they
+  pass. Don't use `gh pr merge --auto`: it merges at once on a repo with no required checks.
+  Don't end the turn asking the user to say "merge" again. Hand the merge back only if the
+  checks fail or the wait is denied, and say which.
+- The landing approval also covers follow-up commits that only touch docs or STATUS.md (for
+  example a correction after the close). Commit and push them the same way without asking
+  again. Never end the session with a commit the user approved landing but that isn't pushed.
 - Some steps only the user can run: production migrations, infrastructure applies, anything
   the permission system has denied this session, anything that needs their credentials.
   Chain them into as few commands as possible and end the turn with them, one per code block,

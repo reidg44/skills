@@ -93,7 +93,8 @@ hand it to a background agent that has tools, or run the skill with `/subtask`.
 Reply in two lines at most, with no preamble or recap:
 
 1. The link (or path) and title of the ticket created or commented on, and its label.
-2. The next action: run `triage` or `new-ticket` on it when ready to shape it.
+2. The next action: run `new-ticket` on that ticket number when ready to shape it. It
+   shapes the existing ticket in place and makes no second one.
 
 If the skill ran in the middle of other work, pick that work up again right where it
 stopped, without asking whether to continue.

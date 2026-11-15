@@ -31,8 +31,10 @@ before that.
 Sort tickets into groups and say how many are in each before starting, for example "31 open:
 22 ready-for-agent, 3 ready-for-human, 4 untriaged, 1 wayfinder map with 6 children."
 
-- **Untriaged** tickets (no state label, or `needs-triage`) aren't groomed. List them in the
-  plan and suggest running `triage` on them.
+- **Untriaged** tickets (no state label, or `needs-triage`) haven't been shaped yet, so skip
+  the update and order checks for them. Still check each one for already done, duplicate,
+  and obsolete (step 2, "Is it still needed?"), and list the rest in the plan under **Flag**.
+  Step 5 offers to shape one.
 - **Wayfinder** maps and their children belong to the `wayfinder` skill. Check them only for
   tickets already answered by the code or by a closed decision, and leave the map's structure
   alone.
@@ -105,7 +107,7 @@ unchecked. Then present one plan, grouped by action:
   the order next-ticket would pick them.
 - **Split or merge:** the proposed new tickets, their titles, and their blocking edges.
 - **Release claims:** stale assignees to remove.
-- **Flag:** untriaged tickets to send to `triage`, and open questions for the user.
+- **Flag:** untriaged tickets that still need shaping, and open questions for the user.
 - **No change:** a one-line count, so the user knows the rest were checked.
 
 Then ask the user to approve, edit, or drop parts of the plan, along with the open questions
@@ -135,8 +137,23 @@ calls if needed. Wait for the answers.
   or keep it as their parent.
 - **Release** a stale claim with `gh issue edit <n> --remove-assignee <login>` and a comment.
 
-## 5. Report
+## 5. Make sure something is ready
+
+Check what `next-ticket` would pick now. If at least one ready ticket is unblocked, go to
+step 6.
+
+If none is, and untriaged tickets are open, don't end on "nothing is ready". Ask once, with
+the question tool, which untriaged ticket to shape now. Offer the smallest first, marked
+`(Recommended)`, and include "None for now". On a pick, shape that ticket in place with the
+`new-ticket` skill's "shape an existing ticket" path: size it, grill only if needed, show
+the draft, and on approval rewrite the body and swap its label to ready. Without that skill,
+do those steps yourself. Shape one ticket per question.
+
+Don't hand this to a `triage` skill yourself. In some setups only the user can start it. You
+may name it in the report as something the user can run.
+
+## 6. Report
 
 Give a short summary: how many tickets were checked, what was closed, updated, re-ordered,
-split, or released, what was left for `triage` or the user, and the next three tickets in the
-order next-ticket will now pick them.
+split, released, or shaped, what was left untriaged or for the user, and the next three
+tickets in the order next-ticket will now pick them.

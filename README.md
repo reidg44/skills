@@ -23,18 +23,18 @@ when the code has moved on and the open tickets may have gone stale.
 
 | Skill | What it does |
 | --- | --- |
-| `new-ticket` | Turns a request into a ticket. Sizes it first (quick, needs grilling, or too big for one session), checks the size with you, grills only when needed, and creates nothing until you approve the draft. Approved tickets are labelled `ready-for-agent`, so `next-ticket` can pick them up right away. |
+| `new-ticket` | Turns a request into a ticket. Sizes it first (quick, needs grilling, or too big for one session), checks the size with you, grills only when needed, and creates nothing until you approve the draft. Approved tickets are labelled `ready-for-agent`, so `next-ticket` can pick them up right away. Also shapes an existing `needs-triage` ticket in place when you name one. |
 | `new-idea` | Captures a passing idea as a `needs-triage` ticket in seconds, mid-session, without interrupting the work in progress. Asks nothing, shows no draft, and doesn't start on the idea. |
 | `generate-ideas` | Studies the project and suggests ways to make it better, from quick wins to big bets and "wouldn't it be cool if" moonshots, across speed, looks, user experience, and new capabilities. You pick the ones you like, and each pick becomes a `needs-triage` ticket. Changes no code. |
 | `next-ticket` | Picks the lowest-numbered unblocked `ready-for-agent` ticket and takes it end to end: build test-first, verify like a user, wrap up, commit, close. Also works the next decision on a wayfinder map. |
-| `backlog-grooming` | Checks every open ticket against today's code (still needed? stale? split right? blocked by the right things?), proposes one grouped plan, and applies it after you approve. |
+| `backlog-grooming` | Checks every open ticket against today's code (still needed? stale? split right? blocked by the right things?), proposes one grouped plan, and applies it after you approve. If nothing is ready afterwards, it offers to shape one untriaged ticket. |
 
 ### Sessions
 
 | Skill | What it does |
 | --- | --- |
 | `reorient` | Starts a session on a project you've been away from. Rebuilds where things stand from STATUS.md, the tracker, and git, and proposes one next step. Read-only. |
-| `wrap-session` | Ends a session. Cleans up scratch files, records what was learned in the right place, writes STATUS.md, and flags uncommitted work. |
+| `wrap-session` | Ends a session. Cleans up scratch files, records what was learned in the right place, writes STATUS.md, flags uncommitted work, and offers to commit its own edits. |
 | `kid-mode` | Turns a session kid-friendly for a 9 to 11 year old building their own app: plain-word replies and recaps, one simple question at a time, new ideas typed mid-task get queued instead of derailing the work. Code, docs, commits, and anything sent to another agent stay at full strength. Writes a marker into the project's AGENTS.md or CLAUDE.md so it stays on. |
 
 ### Project setup and upkeep
