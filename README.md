@@ -45,6 +45,7 @@ when the code has moved on and the open tickets may have gone stale.
 | `prek-setup` | Adds or migrates git hooks to prek with betterleaks for secret scanning. |
 | `update-deps` | Updates every dependency in every ecosystem the repo uses, plus GitHub Actions and Dependabot alerts. Each major update is kept only if tests, lint, and typecheck pass. |
 | `validate-docs` | Checks every doc in the repo against the real code and config, and fixes what's wrong or stale. |
+| `audit-agent-files` | Audits every agent instruction file that loads (AGENTS.md, CLAUDE.md, rules, nested, user-level, memory) against current best practices, lists numbered suggestions (delete, move to a skill or hook, fix stale lines, de-duplicate, tighten, add what's missing), and applies only the ones you pick. |
 | `simplify` | Reviews code for reuse, quality, and efficiency with three parallel reviewers, then applies the worthwhile fixes. Works on the current diff or a whole codebase. |
 
 ### Writing and media
