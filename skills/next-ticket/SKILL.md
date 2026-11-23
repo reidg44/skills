@@ -110,28 +110,47 @@ Note the current commit (`git rev-parse HEAD`) as the ticket's **starting point*
 
 **Preflight credentials.** Before building, check every credential the verify and land steps
 need: cloud CLI sessions (for example `aws sts get-caller-identity --profile <p>`), the
-secrets manager being unlocked, commit signing, and dev-database access. Name anything expired
-in your opening message, with the exact command that fixes it, so the user can fix it while
-you build instead of finding out at the end.
+secrets manager being unlocked, commit signing, and dev-database access. Include the
+credentials for any release or install step the user may ask for after landing (an app-store
+or beta upload, a device install), and check them **before** any long test run starts, so an
+expired session doesn't surface after a 15-minute suite and force a second run. Name anything
+expired in your opening message, with the exact command that fixes it, so the user can fix it
+while you build instead of finding out at the end.
 
 ## 2. Build it
 
-- Work test-first where there's a clean seam: write a failing test, then just enough code to
-  pass it, one slice at a time. If a `tdd` skill is available, use it. Take the seams under
-  test from the ticket's acceptance criteria and key interfaces, and don't stop to confirm
-  them with the user unless the ticket leaves them genuinely unclear. Run typechecking and
-  single test files often while you work.
-- Stay inside the ticket's scope. If you find related work, note it for the closing comment
-  or a new ticket. Don't build it now.
-- At the end, run the project's **full** test suite, lint, and typecheck. Find the commands in
-  AGENTS.md/CLAUDE.md, the justfile/Makefile, or package scripts. Fix every failure, including
-  failures that look unrelated, or name them explicitly in the report.
-- **Check every user-facing change the way a user would.** Drive web UI in a real browser,
-  call the live API, or run the actual CLI workflow. Passing tests alone don't count as done.
-- Review the diff against the ticket's acceptance criteria. If a `code-review` skill is
-  available, use it, and give it the starting point from step 1 as the fixed point and the
-  ticket as the spec so it doesn't have to ask. Fix what the review finds, including any
-  refactoring it suggests.
+The full test suite runs **once** per ticket, after review. Do 2a-2d in order.
+
+**2a. Build test-first with targeted tests.** Work test-first where there's a clean seam:
+write a failing test, then just enough code to pass it, one slice at a time. If a `tdd` skill
+is available, use it. Take the seams under test from the ticket's acceptance criteria and key
+interfaces, and don't stop to confirm them with the user unless the ticket leaves them
+genuinely unclear. Run typechecking and targeted tests often while you work: single test
+files, one test class, or the project's fast runner. Stay inside the ticket's scope. If you
+find related work, note it for the closing comment or a new ticket. Don't build it now.
+
+**Never use the full suite as the inner loop.** When the project documents a targeted runner
+(for example `just ios-test <Class>`, `just ios-unit`, `IOS_ONLY=<Class> just ios-check`,
+`swift test --filter`, `pytest path/to/test_file.py`), use it while you work. Use the full
+suite only for the one run in 2c.
+
+**2b. Review and fix.** Review the diff against the ticket's acceptance criteria. If a
+`code-review` skill is available, use it, and give it the starting point from step 1 as the
+fixed point and the ticket as the spec so it doesn't have to ask. Fix what the review finds,
+including any refactoring it suggests, still checking each fix with targeted tests.
+
+**2c. Run the full suite once.** Run the project's **full** test suite, lint, and typecheck.
+Find the commands in AGENTS.md/CLAUDE.md, the justfile/Makefile, or package scripts. Fix every
+failure, including failures that look unrelated, or name them explicitly in the report.
+
+**Run the full suite again only when code it covers changed since its last pass.** Edits to
+docs, STATUS.md, AGENTS.md/CLAUDE.md, PR text, or the ticket don't need another run. If a fix
+after 2c does touch covered code, rerun the targeted tests for it first, then the full suite
+once more. If the project records a pass (for example a check-passed file that a release or
+device recipe reads), trust it.
+
+**2d. Check every user-facing change the way a user would.** Drive web UI in a real browser,
+call the live API, or run the actual CLI workflow. Passing tests alone don't count as done.
 
 ## 3. Wrap up the session
 
@@ -140,7 +159,8 @@ Always run the `wrap-session` skill once the build is verified, or once you stop
 instead of leaking into the next one. If it isn't available, do its steps yourself: delete
 session debris, record what was learned in the right place, and update STATUS.md. Skip its
 "flag uncommitted work" step and its closing summary: step 4 commits, and the report covers
-the rest. If the wrap-up adds a check, run it before committing.
+the rest. If the wrap-up adds a check, run it before committing. The wrap-up's doc and
+STATUS.md edits don't trigger another full-suite run (see 2c).
 
 **Write STATUS.md as it will read once the ticket has landed.** It goes into the ticket's
 commit, so anything it says about landing is out of date minutes later. Point it at the next
@@ -167,6 +187,11 @@ comment. Done right, STATUS.md needs no second edit after step 4.
   pass. Don't use `gh pr merge --auto`: it merges at once on a repo with no required checks.
   Don't end the turn asking the user to say "merge" again. Hand the merge back only if the
   checks fail or the wait is denied, and say which.
+- **Don't rerun the suite after landing.** After a merge, or for a "release it" or "install
+  it" request right after landing, the code is what 2c already passed: don't run the suite
+  yourself again. A release or device recipe that runs the check itself should skip it when
+  the project's pass record matches the current code. If the recipe has no such skip, run it
+  anyway and note in the report that adding one would save a full run.
 - The landing approval also covers follow-up commits that only touch docs or STATUS.md (for
   example a correction after the close). Commit and push them the same way without asking
   again. Never end the session with a commit the user approved landing but that isn't pushed.
