@@ -1,6 +1,6 @@
 ---
 name: backlog-grooming
-description: Review every open ticket in the backlog against the code as it is today - is it still needed, does it need updating, is it split right, and is the order (blocking edges) still correct - then propose one grouped plan and apply it after the user approves. Works with GitHub issues or local markdown tickets. Use when the user says "groom the backlog", "clean up the tickets", "are these issues still relevant", "re-order the backlog", "backlog review", or before a run of next-ticket after the code has moved on.
+description: Review every open ticket in the backlog against the code as it is today - is it still needed, does it need updating, is it split right, and is the order (blocking edges) still correct - then propose one grouped plan and apply it after the user approves. Also offers to triage the untriaged tickets, shaping the ones the user picks into ready tickets. Works with GitHub issues or local markdown tickets. Use when the user says "groom the backlog", "clean up the tickets", "are these issues still relevant", "re-order the backlog", "backlog review", "triage the backlog", or before a run of next-ticket after the code has moved on.
 ---
 
 # Backlog grooming
@@ -32,9 +32,10 @@ Sort tickets into groups and say how many are in each before starting, for examp
 22 ready-for-agent, 3 ready-for-human, 4 untriaged, 1 wayfinder map with 6 children."
 
 - **Untriaged** tickets (no state label, or `needs-triage`) haven't been shaped yet, so skip
-  the update and order checks for them. Still check each one for already done, duplicate,
-  and obsolete (step 2, "Is it still needed?"), and list the rest in the plan under **Flag**.
-  Step 5 offers to shape one.
+  the update and order checks for them. Check each one for already done, duplicate, and
+  obsolete (step 2, "Is it still needed?"), then assess the rest for triage (step 2, "What
+  would triage take?"). Grooming offers to triage them in step 3 and does it in step 5. A
+  backlog that is groomed but still untriaged gives next-ticket nothing new to pick.
 - **Wayfinder** maps and their children belong to the `wayfinder` skill. Check them only for
   tickets already answered by the code or by a closed decision, and leave the map's structure
   alone.
@@ -88,6 +89,19 @@ are all closed, and issue numbers can't change, so fix order only through blocki
 - **Priority.** If something more urgent sits behind less urgent work, propose the edge
   changes that bring it forward, and say what they push back.
 
+### What would triage take?
+
+For each untriaged ticket that is still needed, work out what it would take to make it
+ready. Don't write to the ticket yet.
+
+- **Quick.** The request reads one way and the code shows how to build it. Draft the shaped
+  ticket now: title, body, acceptance criteria, labels, and blockers.
+- **Needs answers.** List the questions only the user can answer, at most 5, most important
+  first.
+- **Too big** for one fresh session. Propose the split.
+- **Not for an agent.** It needs a human (credentials, a design call, manual testing) or
+  information from someone else. Say which, and who.
+
 ### Finding format
 
 Each finding gives the ticket number and title, the problem, the evidence (`file:line`, a
@@ -107,7 +121,10 @@ unchecked. Then present one plan, grouped by action:
   the order next-ticket would pick them.
 - **Split or merge:** the proposed new tickets, their titles, and their blocking edges.
 - **Release claims:** stale assignees to remove.
-- **Flag:** untriaged tickets that still need shaping, and open questions for the user.
+- **Triage:** every untriaged ticket that is still needed, grouped by what triage would
+  take: quick (with the drafted ticket), needs answers (with the question count), too big
+  (with the split), and not for an agent (with the label it would get).
+- **Flag:** open questions for the user.
 - **No change:** a one-line count, so the user knows the rest were checked.
 
 Then ask the user to approve, edit, or drop parts of the plan, along with the open questions
@@ -116,6 +133,12 @@ equivalent, falling back to plain text only when there is none. Put the recommen
 first, marked `(Recommended)`. The tool takes up to 4 questions per call, so for a large
 plan ask one question per action group (for example "Close these 5 tickets?"), in several
 calls if needed. Wait for the answers.
+
+Always ask the **Triage** question when any untriaged ticket is still needed. Don't leave
+triage for the report. Ask which tickets to triage now, as a multi-select where the tool has
+one, with these options: all the quick ones (first, marked `(Recommended)`), all of them,
+and none for now. Say how long each choice takes in real units, for example "4 quick
+tickets, about 5 minutes; 3 that need answers, about 10 minutes each."
 
 ## 4. Apply what was approved
 
@@ -137,23 +160,39 @@ calls if needed. Wait for the answers.
   or keep it as their parent.
 - **Release** a stale claim with `gh issue edit <n> --remove-assignee <login>` and a comment.
 
-## 5. Make sure something is ready
+## 5. Triage what the user picked
+
+Triage the tickets the user picked in step 3, after step 4, so that closes and merges have
+already landed. Work in this order, and restate progress as "ticket N of M" before each one.
+
+1. **Quick** tickets. The user approved the drafts in step 3, so apply them: replace the
+   title and body, remove the untriaged label, add the ready and category labels, wire the
+   blockers, and add a short comment saying the ticket was shaped and what was decided.
+2. **Not for an agent.** Swap the untriaged label for the human or needs-info label, and
+   comment with what the ticket is waiting on.
+3. **Needs answers** and **too big**, one ticket at a time. Shape each in place with the
+   `new-ticket` skill's "shape an existing ticket" path: ask the questions, show the draft,
+   and on approval rewrite the ticket and swap its label to ready. Without that skill, do
+   those steps yourself. For a split, create the new tickets as in step 4.
+
+Re-read each ticket right before writing to it. If the user stops partway, leave the rest
+untriaged and list them in the report.
+
+Do the triage yourself. Don't hand it to a `triage` skill, because in some setups only the
+user can start one. You may name it in the report as something the user can run.
+
+## 6. Make sure something is ready
 
 Check what `next-ticket` would pick now. If at least one ready ticket is unblocked, go to
-step 6.
+step 7.
 
-If none is, and untriaged tickets are open, don't end on "nothing is ready". Ask once, with
-the question tool, which untriaged ticket to shape now. Offer the smallest first, marked
-`(Recommended)`, and include "None for now". On a pick, shape that ticket in place with the
-`new-ticket` skill's "shape an existing ticket" path: size it, grill only if needed, show
-the draft, and on approval rewrite the body and swap its label to ready. Without that skill,
-do those steps yourself. Shape one ticket per question.
+If none is, and untriaged tickets are still open, don't end on "nothing is ready". Ask once
+more, with the question tool, which untriaged ticket to triage now. Offer the smallest
+first, marked `(Recommended)`, and include "None for now". On a pick, triage it as in
+step 5.
 
-Don't hand this to a `triage` skill yourself. In some setups only the user can start it. You
-may name it in the report as something the user can run.
-
-## 6. Report
+## 7. Report
 
 Give a short summary: how many tickets were checked, what was closed, updated, re-ordered,
-split, released, or shaped, what was left untriaged or for the user, and the next three
+split, released, or triaged, what was left untriaged or for the user, and the next three
 tickets in the order next-ticket will now pick them.

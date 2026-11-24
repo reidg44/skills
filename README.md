@@ -27,7 +27,7 @@ when the code has moved on and the open tickets may have gone stale.
 | `new-idea` | Captures a passing idea as a `needs-triage` ticket in seconds, mid-session, without interrupting the work in progress. Asks nothing, shows no draft, and doesn't start on the idea. |
 | `generate-ideas` | Studies the project and suggests ways to make it better, from quick wins to big bets and "wouldn't it be cool if" moonshots, across speed, looks, user experience, and new capabilities. You pick the ones you like, and each pick becomes a `needs-triage` ticket. Changes no code. |
 | `next-ticket` | Picks the lowest-numbered unblocked `ready-for-agent` ticket and takes it end to end: build test-first, verify like a user, wrap up, commit, close. Also works the next decision on a wayfinder map. |
-| `backlog-grooming` | Checks every open ticket against today's code (still needed? stale? split right? blocked by the right things?), proposes one grouped plan, and applies it after you approve. If nothing is ready afterwards, it offers to shape one untriaged ticket. |
+| `backlog-grooming` | Checks every open ticket against today's code (still needed? stale? split right? blocked by the right things?), proposes one grouped plan, and applies it after you approve. It also offers to triage the untriaged tickets and shapes the ones you pick into ready tickets. |
 
 ### Sessions
 
